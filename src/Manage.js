@@ -31,7 +31,7 @@ const Manage = ({ user, onActiveEvent, onClose }) => {
         pad={{ left: 'medium' }}
         margin={{ bottom: 'large' }}
       >
-        <Heading margin="none">Events</Heading>
+        <Heading size="small" margin="none">Events</Heading>
         <Button icon={<Close />} hoverIndicator onClick={onClose} />
       </Box>
       {events.map(event => (
