@@ -20,10 +20,10 @@ const Start = ({ onActiveEvent, onUser }) => {
             admins: [user.id],
           };
           localStorage.setItem(myEvent.id, JSON.stringify(myEvent));
-          const stored = localStorage.getItem('events');
-          const events = stored ? JSON.parse(stored) : [];
-          localStorage.setItem('events', JSON.stringify([...events, myEvent.id]));
-          localStorage.setItem('activeEvent', myEvent.id);
+          const stored = localStorage.getItem('eventIds');
+          const eventIds = stored ? JSON.parse(stored) : [];
+          localStorage.setItem('eventIds', JSON.stringify([...eventIds, myEvent.id]));
+          localStorage.setItem('activeEventId', myEvent.id);
           onActiveEvent(myEvent);
           onUser(user)
         }}
