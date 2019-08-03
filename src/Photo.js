@@ -1,18 +1,14 @@
 import React from 'react';
 import { Box, Button, Image, Stack } from 'grommet';
 import { Trash } from 'grommet-icons';
+import SessionContext from './SessionContext';
+import { apiUrl } from './utils';
 
-const Photo = ({ photo, onDelete }) => {
-  const [src, setSrc] = React.useState(photo.src);
-  const [aspectRatio, setAspectRatio] = React.useState(photo.aspectRatio);
+const Photo = ({ photo: photoArg, onDelete }) => {
+  const session = React.useContext(SessionContext);
+  const [photo, setPhoto] = React.useState(photoArg);
   const [confirmDelete, setConfirmDelete] = React.useState();
-
-  React.useEffect(() => {
-    const stored = localStorage.getItem(photo.srcId);
-    if (stored) {
-      setSrc(stored);
-    }
-  }, [photo]);
+  const [deleting, setDeleting] = React.useState();
 
   const scale = (event) => {
     const image = event.target;
@@ -34,33 +30,54 @@ const Photo = ({ photo, onDelete }) => {
     const context = canvas.getContext('2d');
     context.drawImage(image, 0, 0, scaledWidth, scaledHeight);
     const scaledDataUrl = canvas.toDataURL(photo.type);
-    localStorage.setItem(photo.srcId, scaledDataUrl);
-    // remember aspect ratio
-    const nextPhoto = { ...photo, aspectRatio: nextAspectRatio };
-    delete nextPhoto.src;
-    localStorage.setItem(photo.id, JSON.stringify(nextPhoto));
-    setAspectRatio(nextAspectRatio);
+
+    const scaledPhoto = { ...photo, aspectRatio: nextAspectRatio, src: scaledDataUrl };
+    setPhoto(scaledPhoto);
+    const body = JSON.stringify(scaledPhoto);
+    fetch(`${apiUrl}/photos`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.token}`,
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Content-Length': body.length,
+      },
+      body,
+    })
+      .then(response => response.json())
+      .then(setPhoto);
   }
 
+  const height = photo.aspectRatio ? `${100 * (1 / photo.aspectRatio)}vw` : '80vh';
+
   return (
-    <Box basis={aspectRatio ? `${100 * (1 / aspectRatio)}vw` : '80vh'} flex={false}>
-      <Stack fill anchor="bottom-right">
-        <Box fill overflow="hidden">
+    <Box flex={false}>
+      <Stack anchor="bottom-right">
+        <Box height={height} overflow="hidden">
           <Image
             fit="cover"
-            src={src}
-            onLoad={!aspectRatio ? scale : undefined}
+            src={photo.src}
+            onLoad={!photo.aspectRatio ? scale : undefined}
           />
         </Box>
         <Box>
-          {confirmDelete && (
+          {confirmDelete && !deleting && (
             <Button
-              icon={<Trash color="status-critical" />}
+              icon={(
+                <Trash color={deleting ? 'status-unknown' : 'status-critical'} />
+              )}
               hoverIndicator
+              disabled={deleting}
               onClick={() => {
-                localStorage.removeItem(photo.srcId);
-                localStorage.removeItem(photo.id);
-                onDelete();
+                fetch(`${apiUrl}/photos/${photo.id}`, {
+                  method: 'DELETE',
+                  headers: {
+                    'Authorization': `Bearer ${session.token}`,
+                  },
+                })
+                  .then(() => setConfirmDelete(undefined))
+                  .then(onDelete)
+                  .catch(() => setDeleting(false));
+                setDeleting(true);
               }}
             />
           )}

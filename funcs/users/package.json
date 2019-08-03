@@ -1,0 +1,11 @@
+{
+  "name": "users",
+  "version": "0.0.1",
+  "dependencies": {
+    "@google-cloud/firestore": "2.2.6",
+    "@google-cloud/functions-framework": "^1.1.1"
+  },
+  "scripts": {
+    "start": "functions-framework --target=users"
+  }
+}

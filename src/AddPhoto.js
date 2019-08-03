@@ -1,23 +1,15 @@
 import React from 'react';
 import { Box, Button, Stack, TextInput } from 'grommet';
 import { Add } from 'grommet-icons';
-import { uuidv4 } from './utils';
 
-const AddPhoto = ({ event, user, onAdd }) => {
+const AddPhoto = ({ onAdd }) => {
 
   const addPhoto = (file) => {
-    const id = uuidv4();
     const photo = {
-      eventId: event.id,
-      userId: user.id,
-      id,
       name: file.name,
       type: file.type,
       date: file.lastModified,
-      srcId: `${id}-${file.name}`,
     };
-    localStorage.setItem(id, JSON.stringify(photo));
-
     const reader = new FileReader();
     reader.onload = (event2) => {
       photo.src = event2.target.result;

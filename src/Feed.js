@@ -1,31 +1,33 @@
 import React from 'react';
-import { Box, Button } from 'grommet';
+import { Box } from 'grommet';
 import { Apps } from 'grommet-icons';
+import SessionContext from './SessionContext';
+import RoutedButton from './RoutedButton';
 import Photo from './Photo';
 import AddPhoto from './AddPhoto';
 
-const Feed = ({ event, user, onManage }) => {
+const Feed = () => {
+  const session = React.useContext(SessionContext);
   const [photos, setPhotos] = React.useState([]);
 
-  React.useEffect(() => {
-    const stored = localStorage.getItem('photoIds');
-    if (stored) {
-      const photoIds = JSON.parse(stored);
-      const nextPhotos = photoIds.map((id) => {
-        const stored = localStorage.getItem(id);
-        return (stored ? JSON.parse(stored) : { id });
-      });
-      setPhotos(nextPhotos);
-    }
-  }, []);
+  // React.useEffect(() => {
+  //   const stored = localStorage.getItem('photoIds');
+  //   if (stored) {
+  //     const photoIds = JSON.parse(stored);
+  //     const nextPhotos = photoIds.map((id) => {
+  //       const stored = localStorage.getItem(id);
+  //       return (stored ? JSON.parse(stored) : { id });
+  //     });
+  //     setPhotos(nextPhotos);
+  //   }
+  // }, []);
 
   return (
     <Box fill overflow="auto" background="dark-1">
       <Box flex={false} direction="row" justify="between" align="center">
-        <Button icon={<Apps />} hoverIndicator onClick={onManage} />
+        <RoutedButton path="/events" icon={<Apps />} hoverIndicator />
         <AddPhoto
-          user={user}
-          event={event}
+          session={session}
           onAdd={(photo) => {
             const nextPhotos = [photo, ...photos];
             localStorage.setItem('photoIds',
