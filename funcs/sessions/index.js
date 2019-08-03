@@ -33,6 +33,33 @@ const checkPassword = (password, user) =>
     })
   });
 
+const authorize = (req, res) => {
+  const auth = req.get('Authorization');
+  if (!auth) {
+    res.status(403).send('missing Authorization');
+    throw new Error('missing Authorization');
+  }
+  const token = auth.split(' ')[1];
+  if (!token) {
+    res.status(403).send('missing Authorization token');
+    throw new Error('missing Authorization token');
+  }
+  return db.collection('sessions')
+    .where('token', '==', token).get()
+    .then((querySnap) => {
+      if (querySnap.empty) {
+        res.status(403).send('no session');
+        throw new Error('no session');
+      }
+      const session = querySnap.docs[0].data();
+      if (!session.admin) {
+        res.status(403).send('not admin');
+        throw new Error('not admin');
+      }
+      return session;
+    });
+}
+
 /**
  * Responds to any HTTP request.
  *
@@ -62,7 +89,7 @@ exports.sessions = (req, res) => {
       });
   }
   if (req.method === 'POST') {
-    const { name, email, password } = req.body;
+    const { name, email, password, userToken } = req.body;
 
     const addSession = (userSnap) => {
       const user = userSnap.data();
@@ -74,34 +101,40 @@ exports.sessions = (req, res) => {
       }).then(sessionRef => sessionRef.get())
         .then(sessionSnap => res.json(sessionSnap.data()));
     }
+
+    if (userToken) {
+      return db.collection('users').where('token', '==', userToken).get()
+        .then((querySnap) => {
+          if (querySnap.empty) {
+            res.status(403).send();
+            return;
+          }
+          const userSnap = querySnap.docs[0];
+          return addSession(userSnap);
+        });
+    }
     
     return db.collection('users').where('email', '==', email).get()
       .then((querySnap) => {
-        if (!querySnap.empty) {
-          const userSnap = querySnap.docs[0];
-          return checkPassword(password, userSnap.data())
-            .then(() => addSession(userSnap))
-            .catch(() => res.status(403).send())
+        if (querySnap.empty) {
+          res.status(403).send();
+          return;
         }
-        return hashPassword(password)
-          .then(auth => db.collection('users').add({ name, email, auth }))
-          .then(userRef => userRef.get())
-          .then(userSnap =>
-            // add a personal event for the new user
-            db.collection('events').add({
-              name,
-              adminIds: [userSnap.id],
-              shareIds: [],
-            })
-            .then(() => userSnap))
-          .then(userSnap => addSession(userSnap))
+        const userSnap = querySnap.docs[0];
+        return checkPassword(password, userSnap.data())
+          .then(() => addSession(userSnap))
+          .catch(() => res.status(403).send())
+        // return hashPassword(password)
+        //   .then(auth => db.collection('users').add({ name, email, auth }))
+        //   .then(userRef => userRef.get())
+        //   .then(userSnap => addSession(userSnap))
       });
   }
-  // if (req.method === 'DELETE') {
-  //   // TODO: authorize
-  //   const id = decodeURIComponent(req.url.split('/')[1]);
-  //   return db.collection('sessions').doc(id).delete()
-  //     .then(() => res.status(204).send());
-  // }
+  if (req.method === 'DELETE') {
+    const id = decodeURIComponent(req.url.split('/')[1]);
+    return authorize(req, res)
+      .then(session => db.collection('sessions').doc(id).delete())
+      .then(() => res.status(204).send());
+  }
   res.status(405).send();
 };

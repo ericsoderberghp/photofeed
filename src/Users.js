@@ -50,7 +50,14 @@ const Users = () => {
                 </Box>
               </Box>
               <Box flex={false} direction="row" align="center">
-                <Button icon={<Share />} hoverIndicator />
+                <Button
+                  icon={<Share />}
+                  hoverIndicator
+                  onClick={() => navigator.share({
+                    title: user.name,
+                    url: `/users/${user.token}`,
+                  })}
+                />
                 {(user.id === confirmDelete) && (
                   <Button
                     icon={<Trash color="status-critical" />}

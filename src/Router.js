@@ -63,7 +63,7 @@ export const Routes = ({ children, notFoundRedirect }) => (
       let found;
       Children.forEach(children, child => {
         const { path, exact } = child.props;
-        const prefix = path.split(':')[0];
+        const prefix = path ? path.split(':')[0] : '';
         if (
           !found &&
           currentPath &&
