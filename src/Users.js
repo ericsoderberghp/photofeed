@@ -1,6 +1,8 @@
 import React from 'react';
-import { Box, Button, Form, FormField, Heading, Text } from 'grommet';
-import { Add, Close, Share, Trash } from 'grommet-icons';
+import { Box, Button, CheckBox, Form, FormField, Heading, Text } from 'grommet';
+import { Blank, Close, Group, Share, Trash } from 'grommet-icons';
+import Loading from './Loading';
+import Header from './Header';
 import SessionContext from './SessionContext';
 import RoutedButton from './RoutedButton';
 import { apiUrl } from './utils';
@@ -12,6 +14,7 @@ const Users = () => {
   const [confirmDelete, setConfirmDelete] = React.useState();
 
   React.useEffect(() => {
+    document.title = 'Users - Photo Feed';
     fetch(`${apiUrl}/users`, {
       headers: {
         'Authorization': `Bearer ${session.token}`,
@@ -24,17 +27,12 @@ const Users = () => {
 
   return (
     <Box fill>
-      <Box
-        direction="row"
-        justify="between"
-        align="center"
-        pad={{ left: 'medium' }}
-        margin={{ bottom: 'large' }}
-      >
+      <Header>
+        <Blank />
         <Heading size="small" margin="none">Users</Heading>
-        <RoutedButton path="/" icon={<Close />} hoverIndicator />
-      </Box>
-      {users ? (
+        <RoutedButton path="/events" icon={<Close />} hoverIndicator />
+      </Header>
+      {!users ? <Loading Icon={Group} /> : (
         <Box>
           {users.map(user => (
             <Box
@@ -45,9 +43,15 @@ const Users = () => {
               margin={{ bottom: 'medium' }}
             >
               <Box flex>
-                <Box pad="medium">
-                  <Text>{user.name}</Text>
-                </Box>
+                <RoutedButton
+                  path={`/users/edit/${user.id}`}
+                  fill
+                  hoverIndicator
+                >
+                  <Box pad="medium">
+                    <Text>{user.name}</Text>
+                  </Box>
+                </RoutedButton>
               </Box>
               <Box flex={false} direction="row" align="center">
                 <Button
@@ -55,7 +59,7 @@ const Users = () => {
                   hoverIndicator
                   onClick={() => navigator.share({
                     title: user.name,
-                    url: `/users/${user.token}`,
+                    url: `/join/${user.token}`,
                   })}
                 />
                 {(user.id === confirmDelete) && (
@@ -83,37 +87,40 @@ const Users = () => {
               </Box>
             </Box>
           ))}
-          <Button icon={<Add />} hoverIndicator onClick={() => setAdding(!adding)} />
+          <Box align="center" margin="large">
+            <Button label="New User" onClick={() => setAdding(!adding)} />
+          </Box>
           {adding && (
-            <Form
-              value={{ name: '', email: '' }}
-              onSubmit={({ value }) => {
-                const body = JSON.stringify(value);
-                fetch(`${apiUrl}/users`, {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': `Bearer ${session.token}`,
-                    'Content-Type': 'application/json; charset=UTF-8',
-                    'Content-Length': body.length,
-                  },
-                  body,
-                })
-                  .then(response => response.json())
-                  .then((user) => setUsers([user, ...users]))
-                  .then(() => setAdding(false));
-              }}
+            <Box
+              pad={{ horizontal: 'medium', vertical: 'large' }}
+              background="neutral-3"
             >
-              <FormField name="name" placeholder="name" required />
-              <FormField name="email" placeholder="email" required />
-              <Box align="center" margin={{ top: 'large' }}>
-                <Button type="submit" label="Add" />
-              </Box>
-            </Form>
+              <Form
+                value={{ name: '', email: '', password: '', admin: false }}
+                onSubmit={({ value }) => {
+                  fetch(`${apiUrl}/users`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${session.token}`,
+                      'Content-Type': 'application/json; charset=UTF-8',
+                    },
+                    body: JSON.stringify(value),
+                  })
+                    .then(response => response.json())
+                    .then((user) => setUsers([user, ...users]))
+                    .then(() => setAdding(false));
+                }}
+              >
+                <FormField name="name" placeholder="name" required />
+                <FormField name="email" placeholder="email" required />
+                <FormField name="password" placeholder="password" />
+                <FormField name="admin" pad component={CheckBox} label="administrator?" />
+                <Box align="center" margin={{ top: 'large' }}>
+                  <Button type="submit" label="Add User" />
+                </Box>
+              </Form>
+            </Box>
           )}
-        </Box>
-      ) : (
-        <Box pad="large" animation="fadeIn">
-          <Text>Loading ...</Text>
         </Box>
       )}
     </Box>

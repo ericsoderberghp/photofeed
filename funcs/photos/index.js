@@ -57,6 +57,7 @@ exports.photos = (req, res) => {
       })
       .then(() => db.collection('photos').add({
         name, type, date, src, aspectRatio, userId, eventId,
+        created: (new Date()).toISOString(),
       }))
       .then(photoRef => photoRef.get())
       .then(photoSnap => res.json({ id: photoSnap.id, ...photoSnap.data() }))

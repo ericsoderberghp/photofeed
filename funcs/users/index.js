@@ -3,6 +3,22 @@ const crypto = require('crypto');
 
 const db = new Firestore();
 
+const hashPassword = (password) => {
+  const salt = crypto.randomBytes(128).toString('base64');
+  const iterations = 10000;
+  const len = 64;
+  const digest = 'sha512';
+  return new Promise((resolve, reject) => {
+    crypto.pbkdf2(password, salt, iterations, len, digest, (err, hash) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ salt, iterations, len, digest, hash: hash.toString('base64') });
+      }
+    });
+  });
+}
+
 const authorize = (req, res) => {
   const auth = req.get('Authorization');
   if (!auth) {
@@ -30,6 +46,13 @@ const authorize = (req, res) => {
     });
 }
 
+const sanitize = (userSnap) => {
+  const user = userSnap.data();
+  user.id = userSnap.id;
+  delete user.auth;
+  return user;
+}
+
 /**
  * Responds to any HTTP request.
  *
@@ -40,25 +63,38 @@ exports.users = (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
 
   if (req.method === 'OPTIONS') {
-    res.set('Access-Control-Allow-Methods', 'GET, POST, DELETE');
-    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
     res.set('Access-Control-Max-Age', '3600');
     res.status(204).send('');
     return;
   }
+
+  const sanitizeAndReturn = (userSnap) =>
+    res.json(sanitize(userSnap));
+
   if (req.method === 'GET') {
     return authorize(req, res)
-      .then(() => db.collection('users').get())
-      .then(querySnap =>
-        res.json(querySnap.docs.map((snap) => {
-          const user = snap.data();
-          user.id = snap.id;
-          delete user.auth;
-          return user;
-        })))
+      .then(() => {
+        const id = decodeURIComponent(req.url.split('/')[1] || '');
+        if (id) {
+          return db.collection('users').doc(id).get()
+            .then(userSnap => {
+              if (!userSnap.exists) {
+                res.status(404).send();
+              } else {
+                sanitizeAndReturn(userSnap);
+              }
+            });
+        }
+        return db.collection('users').get()
+          .then(querySnap =>
+            res.json(querySnap.docs.map((userSnap) => sanitize(userSnap))));
+      });
   }
+
   if (req.method === 'POST') {
-    const { name, email } = req.body;
+    const { name, email, password, admin } = req.body;
     return authorize(req, res)
       .then(() => db.collection('users').where('email', '==', email).get())
       .then((querySnap) => {
@@ -66,20 +102,57 @@ exports.users = (req, res) => {
           res.status(400).send(`${email} already exists`);
           throw new Error('already exists');
         }
-        return db.collection('users').add({
-          name,
-          email,
-          token: crypto.randomBytes(16).toString('base64'),
-        })
+        return hashPassword(password)
+          .then((auth) => db.collection('users').add({
+            name,
+            email,
+            admin,
+            auth,
+            created: (new Date()).toISOString(),
+            token: crypto.randomBytes(16).toString('base64'),
+          }));
       })
       .then(userRef => userRef.get())
-      .then(userSnap => res.json({ id: userSnap.id, ...userSnap.data() }))
+      .then(sanitizeAndReturn);
   }
+
+  if (req.method === 'PUT') {
+    const id = decodeURIComponent(req.url.split('/')[1] || '');
+    const { name, email, password, admin } = req.body;
+    const userRef = db.collection('users').doc(id);
+    return authorize(req, res)
+      .then(() => userRef.get())
+      .then((userSnap) => {
+        if (!userSnap.exists) {
+          res.status(404).send();
+        } else if (password) {
+          return hashPassword(password)
+            .then((auth) => userRef.update({
+              name,
+              email,
+              admin,
+              auth,
+            }))
+            .then(() => userRef.get())
+            .then(sanitizeAndReturn);
+        } else {
+          return userRef.update({
+            name,
+            email,
+            admin,
+          })
+          .then(() => userRef.get())
+          .then(sanitizeAndReturn);
+        }
+      });
+  }
+
   if (req.method === 'DELETE') {
     const id = decodeURIComponent(req.url.split('/')[1]);
     return authorize(req, res)
       .then(session => db.collection('users').doc(id).delete())
       .then(() => res.status(204).send());
   }
+
   res.status(405).send();
 };

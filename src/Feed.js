@@ -1,19 +1,24 @@
 import React from 'react';
 import { Box, Heading } from 'grommet';
-import { Apps } from 'grommet-icons';
+import { Blank, Image } from 'grommet-icons';
+import Header from './Header';
 import RoutedButton from './RoutedButton';
 import Photo from './Photo';
 
 const Feed = () => {
   const [photos, setPhotos] = React.useState([]);
 
+  React.useEffect(() => {
+    document.title = 'Photo Feed';
+  }, []);
+
   return (
     <Box fill overflow="auto" background="dark-1">
-      <Box flex={false} direction="row" justify="between" align="center">
-        <RoutedButton path="/events" icon={<Apps />} hoverIndicator />
+      <Header>
+        <RoutedButton path="/events" icon={<Image />} hoverIndicator />
         <Heading size="small" margin="none">Photo Feed</Heading>
-        <Box pad="medium" />
-      </Box>
+        <Blank />
+      </Header>
       {photos.map((photo, index) => (
         <Photo
           key={photo.name}

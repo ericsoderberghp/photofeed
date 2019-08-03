@@ -17,7 +17,8 @@ export default {
       "border": "neutral-1",
       "text": {
         "light": "#591A0C"
-      }
+      },
+      "placeholder": "#666666"
     },
     "font": {
       "family": "\"Lato\"",

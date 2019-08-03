@@ -8,6 +8,7 @@ import Start from './Start';
 import Feed from './Feed';
 import Events from './Events';
 import Users from './Users';
+import Join from './Join';
 import User from './User';
 import Event from './Event';
 import { apiUrl } from './utils';
@@ -41,15 +42,16 @@ function App() {
         ) : (
           <SessionContext.Provider value={session}>
             <Routes notFoundRedirect="/">
-              <Route path="/events/:token" component={Event} />
-              <Route path="/users/:token" component={User} />
               {session ? [
                 <Route key="/" exact path="/" component={Feed} />,
                 <Route key="/events" exact path="/events" component={Events} />,
                 <Route key="/users" exact path="/users" component={Users} />,
+                <Route key="/users/edit" path="/users/edit/:id" component={User} />
               ] : (
                 <Start onSession={setSession} />
               )}
+              <Route path="/events/:token" component={Event} />
+              <Route path="/join/:token" component={Join} />
             </Routes>
           </SessionContext.Provider>
         )}

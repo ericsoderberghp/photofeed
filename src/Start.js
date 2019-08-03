@@ -8,12 +8,10 @@ const Start = ({ onSession }) => {
     <Box fill pad="large" align="center">
       <Heading textAlign="center">Welcome</Heading>
       <Paragraph textAlign="center">
-        To start with, we need to know how to identify you. If we've met,
-        we'll make sure you are you. If we haven't met, we'll consider this
-        an introduction.
+        To start with, we need to verify you are you.
       </Paragraph>
       <Form
-        data={{ name: '', email: '', password: '' }}
+        data={{ email: '', password: '' }}
         onSubmit={({ value: user }) => {
           setBusy(true);
           const body = JSON.stringify(user);
@@ -21,7 +19,6 @@ const Start = ({ onSession }) => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json; charset=UTF-8',
-              'Content-Length': body.length,
             },
             body,
           })
@@ -33,7 +30,6 @@ const Start = ({ onSession }) => {
             .catch(() => setBusy(false));
         }}
       >
-        <FormField name="name" placeholder="name" required />
         <FormField name="email" placeholder="email" required />
         <FormField name="password" placeholder="password" type="password" required />
         <Box align="center" margin={{ top: 'large' }}>

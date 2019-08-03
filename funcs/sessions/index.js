@@ -3,22 +3,6 @@ const crypto = require('crypto');
 
 const db = new Firestore();
 
-const hashPassword = (password) => {
-  const salt = crypto.randomBytes(128).toString('base64');
-  const iterations = 10000;
-  const len = 64;
-  const digest = 'sha512';
-  return new Promise((resolve, reject) => {
-    crypto.pbkdf2(password, salt, iterations, len, digest, (err, hash) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({ salt, iterations, len, digest, hash: hash.toString('base64') });
-      }
-    });
-  });
-}
-
 const checkPassword = (password, user) =>
   new Promise((resolve, reject) => {
     const { auth: { salt, iterations, len, digest, hash } } = user;
@@ -76,6 +60,7 @@ exports.sessions = (req, res) => {
     res.status(204).send('');
     return;
   }
+
   if (req.method === 'GET') {
     const token = req.get('Authorization').split(' ')[1];
     return db.collection('sessions')
@@ -88,15 +73,16 @@ exports.sessions = (req, res) => {
         }
       });
   }
+
   if (req.method === 'POST') {
-    const { name, email, password, userToken } = req.body;
+    const { email, password, userToken } = req.body;
 
     const addSession = (userSnap) => {
       const user = userSnap.data();
       return db.collection('sessions').add({
         userId: userSnap.id,
         admin: user.admin || false,
-        date: (new Date()).toISOString(),
+        created: (new Date()).toISOString(),
         token: crypto.randomBytes(64).toString('base64'),
       }).then(sessionRef => sessionRef.get())
         .then(sessionSnap => res.json(sessionSnap.data()));

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Box, Button, Form, FormField, Heading, Text } from 'grommet';
-import { Add, Close, Share, Trash } from 'grommet-icons';
+import { Blank, Calendar, Close, Share, Trash } from 'grommet-icons';
+import Loading from './Loading';
+import Header from './Header';
 import SessionContext from './SessionContext';
 import RoutedButton from './RoutedButton';
 import { apiUrl } from './utils';
@@ -24,18 +26,12 @@ const Events = () => {
 
   return (
     <Box fill overflow="auto">
-      <Box
-        flex={false}
-        direction="row"
-        justify="between"
-        align="center"
-        pad={{ left: 'medium' }}
-        margin={{ bottom: 'large' }}
-      >
+      <Header>
+        <Blank />
         <Heading size="small" margin="none">Events</Heading>
         <RoutedButton path="/" icon={<Close />} hoverIndicator />
-      </Box>
-      {events ? (
+      </Header>
+      {!events ? <Loading Icon={Calendar} /> : (
         <Box flex="grow">
           <Box flex="grow">
             {events.map(event => (
@@ -87,31 +83,38 @@ const Events = () => {
                 </Box>
               </Box>
             ))}
-            <Button icon={<Add />} hoverIndicator onClick={() => setAdding(!adding)} />
+            <Box align="center" margin={{ vertical: 'medium' }}>
+              <Button label="New Event" onClick={() => setAdding(!adding)} />
+            </Box>
             {adding && (
-              <Form
-                value={{ name: '', userId: session.userId  }}
-                onSubmit={({ value }) => {
-                  const body = JSON.stringify(value);
-                  fetch(`${apiUrl}/events`, {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': `Bearer ${session.token}`,
-                      'Content-Type': 'application/json; charset=UTF-8',
-                      'Content-Length': body.length,
-                    },
-                    body,
-                  })
-                    .then(response => response.json())
-                    .then((event) => setEvents([event, ...events]))
-                    .then(() => setAdding(false));
-                }}
+              <Box
+                pad={{ horizontal: 'medium', vertical: 'large' }}
+                background="neutral-3"
               >
-                <FormField name="name" placeholder="name" required />
-                <Box align="center" margin={{ top: 'large' }}>
-                  <Button type="submit" label="Add" />
-                </Box>
-              </Form>
+                <Form
+                  value={{ name: '', userId: session.userId  }}
+                  onSubmit={({ value }) => {
+                    const body = JSON.stringify(value);
+                    fetch(`${apiUrl}/events`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${session.token}`,
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Content-Length': body.length,
+                      },
+                      body,
+                    })
+                      .then(response => response.json())
+                      .then((event) => setEvents([event, ...events]))
+                      .then(() => setAdding(false));
+                  }}
+                >
+                  <FormField name="name" placeholder="name" required />
+                  <Box align="center" margin={{ top: 'large' }}>
+                    <Button type="submit" label="Add Event" />
+                  </Box>
+                </Form>
+              </Box>
             )}
           </Box>
           {session.admin && (
@@ -119,10 +122,6 @@ const Events = () => {
               <RoutedButton path="/users" label="Users" />
             </Box>
           )}
-        </Box>
-      ) : (
-        <Box pad="medium" animation="fadeIn">
-          <Text>Loading ...</Text>
         </Box>
       )}
     </Box>

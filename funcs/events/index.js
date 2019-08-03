@@ -90,6 +90,7 @@ exports.events = (req, res) => {
       .then(() => db.collection('events').add({
         name,
         userId,
+        created: (new Date()).toISOString(),
         token: crypto.randomBytes(16).toString('base64'),
       }))
       .then(eventRef => eventRef.get())
