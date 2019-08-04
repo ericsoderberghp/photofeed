@@ -4,7 +4,7 @@ import { Trash } from 'grommet-icons';
 import SessionContext from './SessionContext';
 import { apiUrl } from './utils';
 
-const Photo = ({ photo: photoArg, onDelete }) => {
+const Photo = ({ event, photo: photoArg, onDelete }) => {
   const session = React.useContext(SessionContext);
   const [photo, setPhoto] = React.useState(photoArg);
   const [confirmDelete, setConfirmDelete] = React.useState();
@@ -33,15 +33,13 @@ const Photo = ({ photo: photoArg, onDelete }) => {
 
     const scaledPhoto = { ...photo, aspectRatio: nextAspectRatio, src: scaledDataUrl };
     setPhoto(scaledPhoto);
-    const body = JSON.stringify(scaledPhoto);
     fetch(`${apiUrl}/photos`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${session.token}`,
+        'Authorization': session ? `Bearer ${session.token}` : '',
         'Content-Type': 'application/json; charset=UTF-8',
-        'Content-Length': body.length,
       },
-      body,
+      body: JSON.stringify(scaledPhoto),
     })
       .then(response => response.json())
       .then(setPhoto);
@@ -59,34 +57,36 @@ const Photo = ({ photo: photoArg, onDelete }) => {
             onLoad={!photo.aspectRatio ? scale : undefined}
           />
         </Box>
-        <Box>
-          {confirmDelete && !deleting && (
+        {session && (session.admin || session.userId === event.userId) && (
+          <Box>
+            {confirmDelete && !deleting && (
+              <Button
+                icon={(
+                  <Trash color={deleting ? 'status-unknown' : 'status-critical'} />
+                )}
+                hoverIndicator
+                disabled={deleting}
+                onClick={() => {
+                  fetch(`${apiUrl}/photos/${photo.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                      'Authorization': `Bearer ${session.token}`,
+                    },
+                  })
+                    .then(() => setConfirmDelete(undefined))
+                    .then(onDelete)
+                    .catch(() => setDeleting(false));
+                  setDeleting(true);
+                }}
+              />
+            )}
             <Button
-              icon={(
-                <Trash color={deleting ? 'status-unknown' : 'status-critical'} />
-              )}
+              icon={<Trash />}
               hoverIndicator
-              disabled={deleting}
-              onClick={() => {
-                fetch(`${apiUrl}/photos/${photo.id}`, {
-                  method: 'DELETE',
-                  headers: {
-                    'Authorization': `Bearer ${session.token}`,
-                  },
-                })
-                  .then(() => setConfirmDelete(undefined))
-                  .then(onDelete)
-                  .catch(() => setDeleting(false));
-                setDeleting(true);
-              }}
+              onClick={() => setConfirmDelete(!confirmDelete)}
             />
-          )}
-          <Button
-            icon={<Trash />}
-            hoverIndicator
-            onClick={() => setConfirmDelete(!confirmDelete)}
-          />
-        </Box>
+          </Box>
+        )}
       </Stack>
     </Box>
   );

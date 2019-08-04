@@ -42,6 +42,8 @@ function App() {
         ) : (
           <SessionContext.Provider value={session}>
             <Routes notFoundRedirect="/">
+              <Route path="/events/:token" component={Event} />
+              <Route path="/join/:token" component={Join} />
               {session ? [
                 <Route key="/" exact path="/" component={Feed} />,
                 <Route key="/events" exact path="/events" component={Events} />,
@@ -50,8 +52,6 @@ function App() {
               ] : (
                 <Start onSession={setSession} />
               )}
-              <Route path="/events/:token" component={Event} />
-              <Route path="/join/:token" component={Join} />
             </Routes>
           </SessionContext.Provider>
         )}

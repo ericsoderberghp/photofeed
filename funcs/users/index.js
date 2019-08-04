@@ -109,7 +109,7 @@ exports.users = (req, res) => {
             admin,
             auth,
             created: (new Date()).toISOString(),
-            token: crypto.randomBytes(16).toString('base64'),
+            token: crypto.randomBytes(16).toString('hex'),
           }));
       })
       .then(userRef => userRef.get())

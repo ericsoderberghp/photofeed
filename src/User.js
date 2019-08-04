@@ -43,7 +43,7 @@ const User = ({ id, push }) => {
             value={{ name: user.name, email: user.email, admin: user.admin, password: '' }}
             onSubmit={({ value: nextUser }) => {
               setBusy(true);
-              fetch(`${apiUrl}/users/${user.id}`, {
+              fetch(`${apiUrl}/users/${id}`, {
                 method: 'PUT',
                 headers: {
                   'Authorization': `Bearer ${session.token}`,

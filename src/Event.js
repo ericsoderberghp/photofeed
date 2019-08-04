@@ -1,6 +1,8 @@
 import React from 'react';
-import { Box, Heading, Paragraph, Text } from 'grommet';
-import { Apps } from 'grommet-icons';
+import { Box, Button, Heading, Paragraph } from 'grommet';
+import { Blank, Calendar, Image, Share } from 'grommet-icons';
+import Loading from './Loading';
+import Header from './Header';
 import SessionContext from './SessionContext';
 import RoutedButton from './RoutedButton';
 import Photo from './Photo';
@@ -27,14 +29,21 @@ const Event = ({ token }) => {
   return (
     <Box fill overflow="auto" background="dark-1">
       <Box flex={false}>
-        <Box
-          flex={false}
-          direction="row"
-          justify="between"
-          align="center"
-          overflow="hidden"
-        >
-          {session && <RoutedButton path="/events" icon={<Apps />} hoverIndicator />}
+        <Header overflow="hidden" margin={undefined}>
+          {(session && session.adming)
+            ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
+            : (navigator.share ? (
+              <Button
+                icon={<Share />}
+                hoverIndicator
+                onClick={() => navigator.share({
+                  title: event.name,
+                  text: event.name,
+                  url: `/events/${encodeURIComponent(event.token)}`,
+                })}
+              />
+            ) : <Blank />)
+          }
           <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
           {event && (
             <AddPhoto
@@ -44,21 +53,19 @@ const Event = ({ token }) => {
                 // our proto-photo still needs to be scaled by Photo
                 setEvent({
                   ...event,
-                  photos: [
-                    { ...photo, userId: session.userId, eventId: event.id },
-                    ...event.photos,
-                  ],
+                  photos: [ photo, ...event.photos ],
                 })
               }
             />
           )}
-        </Box>
-        {event ? (
+        </Header>
+        {!event ? <Loading Icon={Calendar} /> : (
           <Box flex={false}>
             {event.photos.map(photo => (
               <Photo
                 key={photo.name}
                 photo={photo}
+                event={event}
                 onDelete={() => {
                   setEvent({
                     ...event,
@@ -72,19 +79,6 @@ const Event = ({ token }) => {
                 <Paragraph>We need you to add some photos!</Paragraph>
               </Box>
             )}
-          </Box>
-        ) : (
-          <Box
-            flex={false}
-            margin="medium"
-            pad="xlarge"
-            justify="center"
-            align="center"
-            background="dark-2"
-            animation="fadeIn"
-            round
-          >
-            <Text>Loading ...</Text>
           </Box>
         )}
       </Box>

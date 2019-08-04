@@ -44,7 +44,7 @@ const Users = () => {
             >
               <Box flex>
                 <RoutedButton
-                  path={`/users/edit/${user.id}`}
+                  path={`/users/edit/${encodeURIComponent(user.id)}`}
                   fill
                   hoverIndicator
                 >
@@ -59,7 +59,7 @@ const Users = () => {
                   hoverIndicator
                   onClick={() => navigator.share({
                     title: user.name,
-                    url: `/join/${user.token}`,
+                    url: `/join/${encodeURIComponent(user.token)}`,
                   })}
                 />
                 {(user.id === confirmDelete) && (
@@ -67,7 +67,7 @@ const Users = () => {
                     icon={<Trash color="status-critical" />}
                     hoverIndicator
                     onClick={() => {
-                      fetch(`${apiUrl}/users/${user.id}`, {
+                      fetch(`${apiUrl}/users/${encodeURIComponent(user.id)}`, {
                         method: 'DELETE',
                         headers: {
                           'Authorization': `Bearer ${session.token}`,

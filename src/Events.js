@@ -43,27 +43,34 @@ const Events = () => {
                 margin={{ bottom: 'medium' }}
               >
                 <Box flex>
-                  <RoutedButton fill path={`/events/${event.token}`} hoverIndicator>
+                  <RoutedButton
+                    fill
+                    path={`/events/${encodeURIComponent(event.token)}`}
+                    hoverIndicator
+                  >
                     <Box pad="medium">
                       <Text>{event.name}</Text>
                     </Box>
                   </RoutedButton>
                 </Box>
                 <Box flex={false} direction="row" align="center">
-                  <Button
-                    icon={<Share />}
-                    hoverIndicator
-                    onClick={() => navigator.share({
-                      title: event.name,
-                      url: `/events/${event.token}`,
-                    })}
-                  />
+                  {navigator.share && (
+                    <Button
+                      icon={<Share />}
+                      hoverIndicator
+                      onClick={() => navigator.share({
+                        title: event.name,
+                        text: event.name,
+                        url: `/events/${encodeURIComponent(event.token)}`,
+                      })}
+                    />
+                  )}
                   {(event.id === confirmDelete) && (
                     <Button
                       icon={<Trash color="status-critical" />}
                       hoverIndicator
                       onClick={() => {
-                        fetch(`${apiUrl}/events/${event.id}`, {
+                        fetch(`${apiUrl}/events/${encodeURIComponent(event.id)}`, {
                           method: 'DELETE',
                           headers: {
                             'Authorization': `Bearer ${session.token}`,

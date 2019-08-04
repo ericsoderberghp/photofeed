@@ -57,7 +57,8 @@ exports.events = (req, res) => {
           } else {
             const eventSnap = querySnap.docs[0];
             return db.collection('photos')
-              .where('eventId', '==', eventSnap.id).get()
+              .where('eventId', '==', eventSnap.id)
+              .orderBy('date', 'desc').get()
               .then(querySnap2 => {
                 res.json({
                   id: eventSnap.id,
@@ -91,7 +92,7 @@ exports.events = (req, res) => {
         name,
         userId,
         created: (new Date()).toISOString(),
-        token: crypto.randomBytes(16).toString('base64'),
+        token: crypto.randomBytes(16).toString('hex'),
       }))
       .then(eventRef => eventRef.get())
       .then(eventSnap => res.json({ id: eventSnap.id, ...eventSnap.data() }))

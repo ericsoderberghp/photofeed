@@ -47,7 +47,30 @@ exports.photos = (req, res) => {
   }
 
   if (req.method === 'POST') {
-    const { name, type, date, src, aspectRatio, userId, eventId } = req.body;
+    const {
+      name, type, date, src, aspectRatio, userId, eventId,
+      userName, eventToken,
+    } = req.body;
+    if (eventToken) {
+      // This is when the user isn't authenticated but has the
+      // event token, due to a share.
+      return db.collection('events').where('token', '==', eventToken).get()
+        .then(querySnap => {
+          if (querySnap.empty) {
+            res.status(404).send();
+          } else {
+            const eventSnap = querySnap.docs[0];
+            return db.collection('photos').add({
+              name, type, date, src, aspectRatio, userName,
+              eventId: eventSnap.id,
+              created: (new Date()).toISOString(),
+            })
+              .then(photoRef => photoRef.get())
+              .then(photoSnap => res.json({ id: photoSnap.id, ...photoSnap.data() }));
+          }
+        });
+    }
+
     return authorize(req, res)
       .then((session) => {
         if (session.userId !== userId) {
@@ -58,6 +81,7 @@ exports.photos = (req, res) => {
       .then(() => db.collection('photos').add({
         name, type, date, src, aspectRatio, userId, eventId,
         created: (new Date()).toISOString(),
+        // TODO: add userName from user object
       }))
       .then(photoRef => photoRef.get())
       .then(photoSnap => res.json({ id: photoSnap.id, ...photoSnap.data() }))
