@@ -30,7 +30,7 @@ const Event = ({ token }) => {
     <Box fill overflow="auto" background="dark-1">
       <Box flex={false}>
         <Header overflow="hidden" margin={undefined}>
-          {(session && session.adming)
+          {(session && session.admin)
             ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
             : (navigator.share ? (
               <Button
