@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, CheckBox, Form, FormField, Heading, Text } from 'grommet';
-import { Blank, Close, Group, Share, Trash } from 'grommet-icons';
+import { Close, Group, Share, Trash } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
 import SessionContext from './SessionContext';
@@ -28,7 +28,7 @@ const Users = () => {
   return (
     <Box fill>
       <Header>
-        <Blank />
+        <Box pad="large" />
         <Heading size="small" margin="none">Users</Heading>
         <RoutedButton path="/events" icon={<Close />} hoverIndicator />
       </Header>
@@ -59,7 +59,7 @@ const Users = () => {
                   hoverIndicator
                   onClick={() => navigator.share({
                     title: user.name,
-                    url: `/join/${encodeURIComponent(user.token)}`,
+                    url: `/users/${encodeURIComponent(user.token)}`,
                   })}
                 />
                 {(user.id === confirmDelete) && (

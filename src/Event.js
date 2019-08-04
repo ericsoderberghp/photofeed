@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Heading, Paragraph } from 'grommet';
-import { Blank, Calendar, Image, Share } from 'grommet-icons';
+import { Calendar, Image, Share } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
 import SessionContext from './SessionContext';
@@ -12,17 +12,25 @@ import { apiUrl } from './utils';
 const Event = ({ token }) => {
   const session = React.useContext(SessionContext);
   const [event, setEvent] = React.useState();
+  const [photos, setPhotos] = React.useState();
 
   React.useEffect(() => {
-    fetch(`${apiUrl}/events/${token}`, 
+    fetch(`${apiUrl}/events?token=${token}`, 
       (session
         ? { headers: { 'Authorization': `Bearer ${session.token}` } }
         : undefined),
     )
       .then(response => response.json())
       .then((event) => {
-        document.title = event.name;
+        document.title = `${event.name} - Photo Feed`;
         setEvent(event);
+        fetch(`${apiUrl}/photos?eventId=${event.id}`, 
+          (session
+            ? { headers: { 'Authorization': `Bearer ${session.token}` } }
+            : undefined),
+        )
+          .then(response => response.json())
+          .then(setPhotos);
       });
   }, [token, session]);
 
@@ -42,26 +50,26 @@ const Event = ({ token }) => {
                   url: `/events/${encodeURIComponent(event.token)}`,
                 })}
               />
-            ) : <Blank />)
+            ) : <Box pad="large" />)
           }
           <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
-          {event && (
+          {event
+            && (!event.locked
+              || (session && (session.admin || session.userId === event.userId)))
+            ? (
             <AddPhoto
               session={session}
               event={event}
               onAdd={(photo) =>
                 // our proto-photo still needs to be scaled by Photo
-                setEvent({
-                  ...event,
-                  photos: [ photo, ...event.photos ],
-                })
+                setPhotos([ photo, ...photos ])
               }
             />
-          )}
+          ) : <Box pad="large" />}
         </Header>
-        {!event ? <Loading Icon={Calendar} /> : (
+        {!photos ? <Loading Icon={Calendar} /> : (
           <Box flex={false}>
-            {event.photos.map(photo => (
+            {photos.map(photo => (
               <Photo
                 key={photo.name}
                 photo={photo}
@@ -74,7 +82,7 @@ const Event = ({ token }) => {
                 }}
               />
             ))}
-            {!event.photos.length && (
+            {!photos.length && (
               <Box basis="medium" align="center" justify="center">
                 <Paragraph>We need you to add some photos!</Paragraph>
               </Box>

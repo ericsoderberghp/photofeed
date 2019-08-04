@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Form, FormField, Heading, Text } from 'grommet';
-import { Blank, Calendar, Close, Share, Trash } from 'grommet-icons';
+import { Calendar, Close, Edit, Share, Trash } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
 import SessionContext from './SessionContext';
@@ -27,10 +27,11 @@ const Events = () => {
   return (
     <Box fill overflow="auto">
       <Header>
-        <Blank />
+        <Box pad="large" />
         <Heading size="small" margin="none">Events</Heading>
         <RoutedButton path="/" icon={<Close />} hoverIndicator />
       </Header>
+
       {!events ? <Loading Icon={Calendar} /> : (
         <Box flex="grow">
           <Box flex="grow">
@@ -65,12 +66,17 @@ const Events = () => {
                       })}
                     />
                   )}
+                  <RoutedButton
+                    path={`/events/edit/${event.id}`}
+                    icon={<Edit />}
+                    hoverIndicator
+                  />
                   {(event.id === confirmDelete) && (
                     <Button
                       icon={<Trash color="status-critical" />}
                       hoverIndicator
                       onClick={() => {
-                        fetch(`${apiUrl}/events/${encodeURIComponent(event.id)}`, {
+                        fetch(`${apiUrl}/events/${event.id}`, {
                           method: 'DELETE',
                           headers: {
                             'Authorization': `Bearer ${session.token}`,
@@ -90,6 +96,7 @@ const Events = () => {
                 </Box>
               </Box>
             ))}
+
             <Box align="center" margin={{ vertical: 'medium' }}>
               <Button label="New Event" onClick={() => setAdding(!adding)} />
             </Box>
@@ -124,6 +131,7 @@ const Events = () => {
               </Box>
             )}
           </Box>
+
           {session.admin && (
             <Box flex={false} alignSelf="center" margin="large">
               <RoutedButton path="/users" label="Users" />

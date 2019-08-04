@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Heading, Paragraph } from 'grommet';
-import { Blank, Image } from 'grommet-icons';
+import { Image } from 'grommet-icons';
 import Header from './Header';
 import RoutedButton from './RoutedButton';
 import Photo from './Photo';
@@ -17,7 +17,7 @@ const Feed = () => {
       <Header margin={undefined}>
         <RoutedButton path="/events" icon={<Image />} hoverIndicator />
         <Heading size="small" margin="none">Photo Feed</Heading>
-        <Blank />
+        <Box pad="large" />
       </Header>
       <Box flex pad="large" justify="center" background="neutral-1">
         <Paragraph textAlign="center">

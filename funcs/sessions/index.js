@@ -117,7 +117,7 @@ exports.sessions = (req, res) => {
       });
   }
   if (req.method === 'DELETE') {
-    const id = decodeURIComponent(req.url.split('/')[1]);
+    const id = decodeURIComponent(req.path.split('/')[1]);
     return authorize(req, res)
       .then(session => db.collection('sessions').doc(id).delete())
       .then(() => res.status(204).send());

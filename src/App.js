@@ -9,8 +9,9 @@ import Feed from './Feed';
 import Events from './Events';
 import Users from './Users';
 import Join from './Join';
-import User from './User';
+import EditUser from './EditUser';
 import Event from './Event';
+import EditEvent from './EditEvent';
 import { apiUrl } from './utils';
 
 function App() {
@@ -42,16 +43,16 @@ function App() {
         ) : (
           <SessionContext.Provider value={session}>
             <Routes notFoundRedirect="/">
-              <Route path="/events/:token" component={Event} />
-              <Route path="/join/:token" component={Join} />
-              {session ? [
+              {session && [
                 <Route key="/" exact path="/" component={Feed} />,
                 <Route key="/events" exact path="/events" component={Events} />,
+                <Route key="/events/edit" path="/events/edit/:id" component={EditEvent} />,
                 <Route key="/users" exact path="/users" component={Users} />,
-                <Route key="/users/edit" path="/users/edit/:id" component={User} />
-              ] : (
-                <Start onSession={setSession} />
-              )}
+                <Route key="/users/edit" path="/users/edit/:id" component={EditUser} />
+              ]}
+              <Route path="/events/:token" component={Event} />
+              <Route path="/users/:token" component={Join} />
+              {!session && <Start onSession={setSession} />}
             </Routes>
           </SessionContext.Provider>
         )}

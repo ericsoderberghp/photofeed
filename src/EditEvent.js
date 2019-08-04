@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, CheckBox, Form, FormField, Heading, Text } from 'grommet';
-import { Blank, Close, User as UserIcon } from 'grommet-icons';
+import { Calendar, Close } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
 import SessionContext from './SessionContext';
@@ -8,58 +8,56 @@ import { Pusher } from './Router';
 import RoutedButton from './RoutedButton';
 import { apiUrl } from './utils';
 
-const User = ({ id, push }) => {
+const EditEvent = ({ id, push }) => {
   const session = React.useContext(SessionContext);
-  const [user, setUser] = React.useState();
+  const [event, setEvent] = React.useState();
   const [busy, setBusy] = React.useState();
 
   React.useEffect(() => {
-    fetch(`${apiUrl}/users/${id}`, {
+    fetch(`${apiUrl}/events/${id}`, {
       headers: {
         'Authorization': `Bearer ${session.token}`,
       },
     })
       .then(response => response.json())
-      .then((user) => {
-        document.title = `${user.name} - Photo Feed';`
-        setUser(user);
+      .then((event) => {
+        document.title = `${event.name} - Photo Feed`;
+        setEvent(event);
       });
   }, [id, session]);
 
   return (
     <Box fill overflow="auto">
-      <Header>
-        <Blank />
-        <Heading size="small" margin="none">{user ? user.name : ''}</Heading>
-        <RoutedButton path="/users" icon={<Close />} hoverIndicator />
+      <Header margin={undefined}>
+        <Box pad="large" />
+        <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
+        <RoutedButton path="/events" icon={<Close />} hoverIndicator />
       </Header>
-      {!user ? <Loading Icon={UserIcon} /> : (
+      {!event ? <Loading Icon={Calendar} /> : (
         <Box
           flex={false}
           pad={{ horizontal: 'medium', vertical: 'large' }}
           background="neutral-3"
         >
           <Form
-            value={{ name: user.name, email: user.email, admin: user.admin, password: '' }}
-            onSubmit={({ value: nextUser }) => {
+            value={{ name: event.name, locked: event.locked }}
+            onSubmit={({ value: nextEvent }) => {
               setBusy(true);
-              fetch(`${apiUrl}/users/${id}`, {
+              fetch(`${apiUrl}/events/${event.id}`, {
                 method: 'PUT',
                 headers: {
                   'Authorization': `Bearer ${session.token}`,
                   'Content-Type': 'application/json; charset=UTF-8',
                 },
-                body: JSON.stringify(nextUser),
+                body: JSON.stringify(nextEvent),
               })
                 .then(response => response.json())
-                .then(() => push('/users'))
+                .then(() => push('/events'))
                 .catch(() => setBusy(false));
             }}
           >
             <FormField name="name" placeholder="name" required />
-            <FormField name="email" placeholder="email" required />
-            <FormField name="password" placeholder="new password" type="password" />
-            <FormField name="admin" pad component={CheckBox} label="administrator?" />
+            <FormField name="locked" pad component={CheckBox} label="locked?" />
             <Box align="center" margin={{ top: 'large' }}>
               {busy
                 ? <Text>Just a sec ...</Text>
@@ -75,6 +73,6 @@ const User = ({ id, push }) => {
 
 export default ({ id }) => (
   <Pusher>
-    {(push) => <User id={id} push={push} />}
+    {(push) => <EditEvent id={id} push={push} />}
   </Pusher>
 );

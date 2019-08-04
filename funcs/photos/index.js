@@ -46,6 +46,31 @@ exports.photos = (req, res) => {
     return;
   }
 
+  if (req.method === 'GET') {
+    const id = decodeURIComponent(req.path.split('/')[1] || '');
+    if (id) {
+      return db.collection('photos').doc(id).get()
+        .then(photoSnap => {
+          if (!photoSnap.exists) {
+            res.status(404).send();
+          } else {
+            res.json(photoSnap.data());
+          }
+        });
+    }
+    if (!req.query.eventId) {
+      res.status(400).send();
+    } else {
+      return db.collection('photos')
+        .where('eventId', '==', req.query.eventId)
+        .orderBy('date', 'desc').get()
+        .then(querySnap =>
+          res.json(querySnap.docs.map(photoSnap =>
+            ({ id: photoSnap.id, ...photoSnap.data() }))));
+    }
+
+  }
+
   if (req.method === 'POST') {
     const {
       name, type, date, src, aspectRatio, userId, eventId,
@@ -60,13 +85,18 @@ exports.photos = (req, res) => {
             res.status(404).send();
           } else {
             const eventSnap = querySnap.docs[0];
-            return db.collection('photos').add({
-              name, type, date, src, aspectRatio, userName,
-              eventId: eventSnap.id,
-              created: (new Date()).toISOString(),
-            })
-              .then(photoRef => photoRef.get())
-              .then(photoSnap => res.json({ id: photoSnap.id, ...photoSnap.data() }));
+            const event = eventSnap.data();
+            if (event.locked) {
+              res.status(403).send('event is locked');
+            } else {
+              return db.collection('photos').add({
+                name, type, date, src, aspectRatio, userName,
+                eventId: eventSnap.id,
+                created: (new Date()).toISOString(),
+              })
+                .then(photoRef => photoRef.get())
+                .then(photoSnap => res.json({ id: photoSnap.id, ...photoSnap.data() }));
+            }
           }
         });
     }
@@ -88,11 +118,12 @@ exports.photos = (req, res) => {
   }
 
   if (req.method === 'DELETE') {
-    const id = decodeURIComponent(req.url.split('/')[1]);
+    const id = decodeURIComponent(req.path.split('/')[1]);
     return authorize(req, res)
       .then(session =>
         db.collection('photos').doc(id).get()
           .then((photoSnap) => {
+            // TODO: allow event owner to delete photos
             if (photoSnap.data().userId !== session.userId || !session.admin) {
               res.status(403).send('Invalid userId');
               throw new Error('invalid userId');

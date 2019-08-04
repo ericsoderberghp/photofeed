@@ -76,7 +76,7 @@ exports.users = (req, res) => {
   if (req.method === 'GET') {
     return authorize(req, res)
       .then(() => {
-        const id = decodeURIComponent(req.url.split('/')[1] || '');
+        const id = decodeURIComponent(req.path.split('/')[1] || '');
         if (id) {
           return db.collection('users').doc(id).get()
             .then(userSnap => {
@@ -117,7 +117,7 @@ exports.users = (req, res) => {
   }
 
   if (req.method === 'PUT') {
-    const id = decodeURIComponent(req.url.split('/')[1] || '');
+    const id = decodeURIComponent(req.path.split('/')[1] || '');
     const { name, email, password, admin } = req.body;
     const userRef = db.collection('users').doc(id);
     return authorize(req, res)
@@ -148,7 +148,7 @@ exports.users = (req, res) => {
   }
 
   if (req.method === 'DELETE') {
-    const id = decodeURIComponent(req.url.split('/')[1]);
+    const id = decodeURIComponent(req.path.split('/')[1]);
     return authorize(req, res)
       .then(session => db.collection('users').doc(id).delete())
       .then(() => res.status(204).send());

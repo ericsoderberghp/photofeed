@@ -40,7 +40,7 @@ exports.events = (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
 
   if (req.method === 'OPTIONS') {
-    res.set('Access-Control-Allow-Methods', 'GET, POST, DELETE');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
     res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.set('Access-Control-Max-Age', '3600');
     res.status(204).send('');
@@ -48,35 +48,39 @@ exports.events = (req, res) => {
   }
 
   if (req.method === 'GET') {
-    const token = decodeURIComponent(req.url.split('/')[1] || '');
-    if (token) { // don't need authorization if we have a token
-      return db.collection('events').where('token', '==', token).get()
+    if (req.query.token) {
+      // don't need authorization if we have a token
+      return db.collection('events').where('token', '==', req.query.token).get()
         .then(querySnap => {
           if (querySnap.empty) {
             res.status(404).send();
           } else {
             const eventSnap = querySnap.docs[0];
-            return db.collection('photos')
-              .where('eventId', '==', eventSnap.id)
-              .orderBy('date', 'desc').get()
-              .then(querySnap2 => {
-                res.json({
-                  id: eventSnap.id,
-                  ...eventSnap.data(),
-                  photos: querySnap2.docs.map(snap =>
-                    ({ id: snap.id, ...snap.data() })),
-                });
-              })
+            res.json({ id: eventSnap.id, ...eventSnap.data() });
           }
         });
     }
     
     return authorize(req, res)
-      .then((session) =>
-        db.collection('events').where('userId', '==', session.userId).get())
-      .then(querySnap =>
-        res.json(querySnap.docs.map(snap =>
-          ({ id: snap.id, ...snap.data() }))))
+      .then((session) => {
+        const id = decodeURIComponent(req.path.split('/')[1] || '');
+        if (id) {
+          // don't need authorization if we have a token
+          return db.collection('events').doc(id).get()
+            .then(eventSnap => {
+              if (!eventSnap.exists) {
+                res.status(404).send();
+              } else {
+                res.json({ id: eventSnap.id, ...eventSnap.data() });
+              }
+            });
+        }
+        return db.collection('events')
+          .where('userId', '==', session.userId).get()
+          .then(querySnap =>
+            res.json(querySnap.docs.map(snap =>
+              ({ id: snap.id, ...snap.data() }))));
+      });
   }
 
   if (req.method === 'POST') {
@@ -98,8 +102,25 @@ exports.events = (req, res) => {
       .then(eventSnap => res.json({ id: eventSnap.id, ...eventSnap.data() }))
   }
 
+  if (req.method === 'PUT') {
+    const id = decodeURIComponent(req.path.split('/')[1] || '');
+    const { name, locked } = req.body;
+    const eventRef = db.collection('events').doc(id);
+    return authorize(req, res)
+      .then(() => eventRef.get())
+      .then((eventSnap) => {
+        if (!eventSnap.exists) {
+          res.status(404).send();
+        } else {
+          return eventRef.update({ name, locked })
+          .then(() => eventRef.get())
+          .then(eventSnap => res.json({ id: eventSnap.id, ...eventSnap.data() }));
+        }
+      });
+  }
+
   if (req.method === 'DELETE') {
-    const id = decodeURIComponent(req.url.split('/')[1]);
+    const id = decodeURIComponent(req.path.split('/')[1]);
     return authorize(req, res)
       .then(session =>
         db.collection('events').doc(id).get()
@@ -111,6 +132,9 @@ exports.events = (req, res) => {
             return eventSnap.ref.delete();
           })
       )
+      // delete all photos in the event
+      .then(() => db.collection('photos').where('eventId', '==', id).get())
+      .then(querySnap => querySnap.forEach(photoSnap => photoSnap.ref.delete()))
       .then(() => res.status(204).send());
   }
 
