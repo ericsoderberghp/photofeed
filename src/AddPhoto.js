@@ -59,8 +59,9 @@ const AddPhoto = ({ event, onAdd }) => {
             }
           }
         }}
+        style={{ opacity: 0 }}
       />
-      <Box background="dark-1">
+      <Box>
         <Button
           title="Add a photo"
           icon={<Add />}
