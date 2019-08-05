@@ -138,16 +138,18 @@ exports.photos = (req, res) => {
         if (fieldname === 'photo') {
           photo = JSON.parse(val);
           const {
-            name, type, date, aspectRatio, userId, eventId,
+            name, type, date, aspectRatio, userId, eventId, userName,
           } = photo;
+          const savePhoto = {
+            name, type, date, aspectRatio, eventId,
+            created: (new Date()).toISOString(),
+          };
+          if (userId) savePhoto.userId = userId;
+          if (userName) savePhoto.userName = userName;
 
           pending.push(authorizedToPost(req, res, photo)
-            // add photo
-            .then(() => db.collection('photos').add({
-              name, type, date, aspectRatio, userId, eventId,
-              created: (new Date()).toISOString(),
-              // TODO: add userName from user object
-            }))
+            // add photo            
+            .then(() => db.collection('photos').add(savePhoto))
             .then(photoRef => photoRef.get())
             .then(photoSnap => {
               // now that we have an id, we can update the file src
