@@ -5,7 +5,7 @@ import { apiUrl } from './utils';
 const Start = ({ onSession }) => {
   const [busy, setBusy] = React.useState();
   return (
-    <Box fill pad="large" align="center">
+    <Box pad="large" align="center">
       <Heading textAlign="center">Welcome</Heading>
       <Paragraph textAlign="center">
         To start with, we need to verify you are you.

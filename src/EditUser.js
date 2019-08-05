@@ -27,7 +27,7 @@ const EditUser = ({ id, push }) => {
   }, [id, session]);
 
   return (
-    <Box fill overflow="auto">
+    <Box>
       <Header margin={undefined}>
         <Box pad="large" />
         <Heading size="small" margin="none">{user ? user.name : ''}</Heading>
@@ -36,7 +36,7 @@ const EditUser = ({ id, push }) => {
       {!user ? <Loading Icon={UserIcon} /> : (
         <Box
           flex={false}
-          pad={{ horizontal: 'medium', vertical: 'large' }}
+          pad={{ horizontal: 'large', vertical: 'xlarge' }}
           background="neutral-3"
         >
           <Form

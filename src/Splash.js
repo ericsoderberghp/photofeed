@@ -5,7 +5,7 @@ import Header from './Header';
 import Loading from './Loading';
 
 const Splash = () => (
-  <Box fill animation="fadeIn">
+  <Box animation="fadeIn">
     <Header justify="center">
       <Heading size="small" margin="small">PhotoFeed</Heading>
     </Header>

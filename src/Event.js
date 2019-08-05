@@ -38,44 +38,42 @@ const Event = ({ token }) => {
     || (session && (session.admin || session.userId === event.userId)));
 
   return (
-    <Box fill overflow="auto" background="dark-1">
-      <Box flex={false}>
-        <Header overflow="hidden" margin={undefined}>
-          {(session && session.admin)
-            ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
-            : (navigator.share ? (
-              <Button
-                icon={<Share />}
-                hoverIndicator
-                onClick={() => navigator.share({
-                  title: event.name,
-                  text: event.name,
-                  url: `/events/${encodeURIComponent(event.token)}`,
-                })}
-              />
-            ) : <Box pad="large" />)
-          }
-          <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
-          {canAdd ? (
-            <AddPhoto
-              session={session}
-              event={event}
-              onAdd={(photo) => {
-                // our proto-photo still needs to be scaled by Photo
-                setPhotos([ photo, ...photos ]);
-              }
-              }
+    <Box background="dark-1" style={{ minHeight: '100vh' }}>
+      <Header overflow="hidden" margin={undefined}>
+        {(session && session.admin)
+          ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
+          : (navigator.share ? (
+            <Button
+              icon={<Share />}
+              hoverIndicator
+              onClick={() => navigator.share({
+                title: event.name,
+                text: event.name,
+                url: `/events/${encodeURIComponent(event.token)}`,
+              })}
             />
-          ) : <Box pad="large" />}
-        </Header>
-        {!photos ? <Loading Icon={Calendar} /> : (
-          <Photos
+          ) : <Box pad="large" />)
+        }
+        <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
+        {canAdd ? (
+          <AddPhoto
+            session={session}
             event={event}
-            photos={photos}
-            onDelete={(photo) => setPhotos(photos.filter(p => p.id !== photo.id))}
+            onAdd={(photo) => {
+              // our proto-photo still needs to be scaled by Photo
+              setPhotos([ photo, ...photos ]);
+            }
+            }
           />
-        )}
-      </Box>
+        ) : <Box pad="large" />}
+      </Header>
+      {!photos ? <Loading Icon={Calendar} /> : (
+        <Photos
+          event={event}
+          photos={photos}
+          onDelete={(photo) => setPhotos(photos.filter(p => p.id !== photo.id))}
+        />
+      )}
     </Box>
   );
 }

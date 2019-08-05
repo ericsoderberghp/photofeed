@@ -68,7 +68,7 @@ const Photo = ({ event, photo: photoArg, onDelete }) => {
   const height = photo.aspectRatio ? `${100 * (1 / photo.aspectRatio)}vw` : '80vh';
 
   return (
-    <Box flex={false}>
+    <Box flex={false} animation="fadeIn">
       <Stack anchor="bottom-right">
         <Box height={height} overflow="hidden">
           <Image

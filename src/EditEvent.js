@@ -27,7 +27,7 @@ const EditEvent = ({ id, push }) => {
   }, [id, session]);
 
   return (
-    <Box fill overflow="auto">
+    <Box>
       <Header margin={undefined}>
         <Box pad="large" />
         <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
@@ -36,7 +36,7 @@ const EditEvent = ({ id, push }) => {
       {!event ? <Loading Icon={Calendar} /> : (
         <Box
           flex={false}
-          pad={{ horizontal: 'medium', vertical: 'large' }}
+          pad={{ horizontal: 'large', vertical: 'xlarge' }}
           background="neutral-3"
         >
           <Form

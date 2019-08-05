@@ -13,7 +13,7 @@ const Feed = () => {
   }, []);
 
   return (
-    <Box fill overflow="auto" background="dark-1">
+    <Box background="dark-1">
       <Header margin={undefined}>
         <RoutedButton path="/events" icon={<Image />} hoverIndicator />
         <Heading size="small" margin="none">Photo Feed</Heading>

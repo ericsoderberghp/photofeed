@@ -25,7 +25,7 @@ const Events = () => {
   }, [session]);
 
   return (
-    <Box fill overflow="auto">
+    <Box>
       <Header>
         <Box pad="large" />
         <Heading size="small" margin="none">Events</Heading>
@@ -97,12 +97,12 @@ const Events = () => {
               </Box>
             ))}
 
-            <Box align="center" margin={{ vertical: 'medium' }}>
+            <Box align="center" margin="large">
               <Button label="New Event" onClick={() => setAdding(!adding)} />
             </Box>
             {adding && (
               <Box
-                pad={{ horizontal: 'medium', vertical: 'large' }}
+                pad={{ horizontal: 'large', vertical: 'xlarge' }}
                 background="neutral-3"
               >
                 <Form
@@ -133,7 +133,7 @@ const Events = () => {
           </Box>
 
           {session.admin && (
-            <Box flex={false} alignSelf="center" margin="large">
+            <Box flex={false} alignSelf="center" margin="xlarge">
               <RoutedButton path="/users" label="Users" />
             </Box>
           )}

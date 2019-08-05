@@ -26,7 +26,7 @@ const Users = () => {
   }, [session]);
 
   return (
-    <Box fill>
+    <Box>
       <Header>
         <Box pad="large" />
         <Heading size="small" margin="none">Users</Heading>
@@ -92,7 +92,7 @@ const Users = () => {
           </Box>
           {adding && (
             <Box
-              pad={{ horizontal: 'medium', vertical: 'large' }}
+              pad={{ horizontal: 'large', vertical: 'xlarge' }}
               background="neutral-3"
             >
               <Form

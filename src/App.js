@@ -37,7 +37,7 @@ function App() {
 
   return (
     <Router>
-      <Grommet full theme={theme}>
+      <Grommet theme={theme} style={{ minHeight: '100vh' }}>
         {session === false ? (
           <Splash />
         ) : (

@@ -23,7 +23,7 @@ const Join = ({ token, push }) => {
   }, [token, push]);
 
   return (
-    <Box fill overflow="auto">
+    <Box>
       <Box
         flex
         justify="center"
