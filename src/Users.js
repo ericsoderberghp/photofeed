@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, CheckBox, Form, FormField, Heading, Text } from 'grommet';
-import { Close, Group, Share, Trash } from 'grommet-icons';
+import { Group, Previous, Share, Trash } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
 import SessionContext from './SessionContext';
@@ -28,9 +28,9 @@ const Users = () => {
   return (
     <Box>
       <Header>
-        <Box pad="large" />
+        <RoutedButton path="/events" icon={<Previous />} hoverIndicator />
         <Heading size="small" margin="none">Users</Heading>
-        <RoutedButton path="/events" icon={<Close />} hoverIndicator />
+        <Box pad="large" />
       </Header>
       {!users ? <Loading Icon={Group} /> : (
         <Box>
@@ -48,7 +48,7 @@ const Users = () => {
                   fill
                   hoverIndicator
                 >
-                  <Box pad="medium">
+                  <Box pad={{ horizontal: 'large', vertical: 'medium' }}>
                     <Text>{user.name}</Text>
                   </Box>
                 </RoutedButton>
@@ -58,7 +58,8 @@ const Users = () => {
                   icon={<Share />}
                   hoverIndicator
                   onClick={() => navigator.share({
-                    title: user.name,
+                    title: `${user.name} - Photo Feed`,
+                    text: `${user.name} - Photo Feed`,
                     url: `/users/${encodeURIComponent(user.token)}`,
                   })}
                 />

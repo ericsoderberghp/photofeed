@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Form, FormField, Heading, Text } from 'grommet';
-import { Calendar, Close, Edit, Share, Trash } from 'grommet-icons';
+import { Calendar, Edit, Previous, Share, Trash } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
 import SessionContext from './SessionContext';
@@ -27,9 +27,9 @@ const Events = () => {
   return (
     <Box>
       <Header>
-        <Box pad="large" />
+        <RoutedButton path="/" icon={<Previous />} hoverIndicator />
         <Heading size="small" margin="none">Events</Heading>
-        <RoutedButton path="/" icon={<Close />} hoverIndicator />
+        <Box pad="large" />
       </Header>
 
       {!events ? <Loading Icon={Calendar} /> : (
@@ -49,7 +49,7 @@ const Events = () => {
                     path={`/events/${encodeURIComponent(event.token)}`}
                     hoverIndicator
                   >
-                    <Box pad="medium">
+                    <Box pad={{ horizontal: 'large', vertical: 'medium' }}>
                       <Text>{event.name}</Text>
                     </Box>
                   </RoutedButton>
@@ -60,8 +60,8 @@ const Events = () => {
                       icon={<Share />}
                       hoverIndicator
                       onClick={() => navigator.share({
-                        title: event.name,
-                        text: event.name,
+                        title: `${event.name} - Photo Feed`,
+                        text: `${event.name} - Photo Feed`,
                         url: `/events/${encodeURIComponent(event.token)}`,
                       })}
                     />

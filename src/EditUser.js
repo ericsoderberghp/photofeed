@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, CheckBox, Form, FormField, Heading, Text } from 'grommet';
-import { Close, User as UserIcon } from 'grommet-icons';
+import { Previous, User as UserIcon } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
 import SessionContext from './SessionContext';
@@ -29,9 +29,9 @@ const EditUser = ({ id, push }) => {
   return (
     <Box>
       <Header margin={undefined}>
-        <Box pad="large" />
+        <RoutedButton path="/users" icon={<Previous />} hoverIndicator />
         <Heading size="small" margin="none">{user ? user.name : ''}</Heading>
-        <RoutedButton path="/users" icon={<Close />} hoverIndicator />
+        <Box pad="large" />
       </Header>
       {!user ? <Loading Icon={UserIcon} /> : (
         <Box

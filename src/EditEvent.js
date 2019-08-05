@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, CheckBox, Form, FormField, Heading, Text } from 'grommet';
-import { Calendar, Close } from 'grommet-icons';
+import { Calendar, Previous } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
 import SessionContext from './SessionContext';
@@ -29,9 +29,9 @@ const EditEvent = ({ id, push }) => {
   return (
     <Box>
       <Header margin={undefined}>
-        <Box pad="large" />
+        <RoutedButton path="/events" icon={<Previous />} hoverIndicator />
         <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
-        <RoutedButton path="/events" icon={<Close />} hoverIndicator />
+        <Box pad="large" />
       </Header>
       {!event ? <Loading Icon={Calendar} /> : (
         <Box
