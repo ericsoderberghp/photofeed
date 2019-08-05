@@ -33,6 +33,7 @@ const AddPhoto = ({ event, onAdd }) => {
       photo.userName = userName;
       photo.eventToken = event.token;
     }
+    // make it a dataURL so Photo can render it and then scale it
     const reader = new FileReader();
     reader.onload = (event2) => {
       photo.src = event2.target.result;

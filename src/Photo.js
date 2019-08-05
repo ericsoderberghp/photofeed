@@ -4,6 +4,8 @@ import { Trash } from 'grommet-icons';
 import SessionContext from './SessionContext';
 import { apiUrl } from './utils';
 
+const resolution = 1080;
+
 const Photo = ({ event, photo: photoArg, onDelete }) => {
   const session = React.useContext(SessionContext);
   const [photo, setPhoto] = React.useState(photoArg);
@@ -15,34 +17,52 @@ const Photo = ({ event, photo: photoArg, onDelete }) => {
     const canvas = document.createElement('canvas');
     const naturalWidth = image.naturalWidth;
     const naturalHeight = image.naturalHeight;
-    const nextAspectRatio = naturalWidth / naturalHeight;
+    const aspectRatio = naturalWidth / naturalHeight;
+
     let scaledWidth;
     let scaledHeight;
-    if (nextAspectRatio < 1) { // portrait
-      scaledWidth = 1024;
-      scaledHeight = naturalHeight * (scaledWidth / naturalWidth);
+    if (aspectRatio < 1) { // portrait
+      if (naturalWidth < resolution) {
+        scaledWidth = naturalWidth;
+        scaledHeight = naturalHeight;
+      } else {
+        scaledWidth = resolution;
+        scaledHeight = naturalHeight * (scaledWidth / naturalWidth);
+      }
     } else {
-      scaledHeight = 1024;
-      scaledWidth = naturalWidth * (scaledHeight / naturalHeight);
+      if (naturalHeight < resolution) {
+        scaledWidth = naturalWidth;
+        scaledHeight = naturalHeight;
+      } else {
+        scaledHeight = 1024;
+        scaledWidth = naturalWidth * (scaledHeight / naturalHeight);
+      }
     }
+
     canvas.width = scaledWidth;
     canvas.height = scaledHeight;
     const context = canvas.getContext('2d');
     context.drawImage(image, 0, 0, scaledWidth, scaledHeight);
-    const scaledDataUrl = canvas.toDataURL(photo.type);
+    canvas.toBlob((blob) => {
+      const formData = new FormData();
+      const noSrcPhoto = { ...photo, aspectRatio };
+      delete noSrcPhoto.src;
+      formData.append('photo', JSON.stringify(noSrcPhoto));
+      formData.append('file', blob);
+      fetch(`${apiUrl}/photos`, {
+        method: 'POST',
+        headers: {
+          'Authorization': session ? `Bearer ${session.token}` : '',
+          // 'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      })
+        .then(response => response.json())
+        .then(setPhoto); // src is now a file path
+    }, photo.type);
 
-    const scaledPhoto = { ...photo, aspectRatio: nextAspectRatio, src: scaledDataUrl };
+    const scaledPhoto = { ...photo, aspectRatio }; // still has src
     setPhoto(scaledPhoto);
-    fetch(`${apiUrl}/photos`, {
-      method: 'POST',
-      headers: {
-        'Authorization': session ? `Bearer ${session.token}` : '',
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: JSON.stringify(scaledPhoto),
-    })
-      .then(response => response.json())
-      .then(setPhoto);
   }
 
   const height = photo.aspectRatio ? `${100 * (1 / photo.aspectRatio)}vw` : '80vh';
@@ -74,7 +94,7 @@ const Photo = ({ event, photo: photoArg, onDelete }) => {
                     },
                   })
                     .then(() => setConfirmDelete(undefined))
-                    .then(onDelete)
+                    .then(() => onDelete(photo))
                     .catch(() => setDeleting(false));
                   setDeleting(true);
                 }}

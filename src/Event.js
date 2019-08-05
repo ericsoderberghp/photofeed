@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, Heading, Stack } from 'grommet';
+import { Box, Button, Heading } from 'grommet';
 import { Calendar, Image, Share } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
@@ -40,38 +40,41 @@ const Event = ({ token }) => {
   return (
     <Box fill overflow="auto" background="dark-1">
       <Box flex={false}>
-        <Stack>
-          {!photos ? <Loading Icon={Calendar} /> : (
-            <Photos event={event} photos={photos} />
-          )}
-          <Header overflow="hidden" margin={undefined}>
-            {(session && session.admin)
-              ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
-              : (navigator.share ? (
-                <Button
-                  icon={<Share />}
-                  hoverIndicator
-                  onClick={() => navigator.share({
-                    title: event.name,
-                    text: event.name,
-                    url: `/events/${encodeURIComponent(event.token)}`,
-                  })}
-                />
-              ) : <Box pad="large" />)
-            }
-            <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
-            {canAdd ? (
-              <AddPhoto
-                session={session}
-                event={event}
-                onAdd={(photo) =>
-                  // our proto-photo still needs to be scaled by Photo
-                  setPhotos([ photo, ...photos ])
-                }
+        <Header overflow="hidden" margin={undefined}>
+          {(session && session.admin)
+            ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
+            : (navigator.share ? (
+              <Button
+                icon={<Share />}
+                hoverIndicator
+                onClick={() => navigator.share({
+                  title: event.name,
+                  text: event.name,
+                  url: `/events/${encodeURIComponent(event.token)}`,
+                })}
               />
-            ) : <Box pad="large" />}
-          </Header>
-        </Stack>
+            ) : <Box pad="large" />)
+          }
+          <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
+          {canAdd ? (
+            <AddPhoto
+              session={session}
+              event={event}
+              onAdd={(photo) => {
+                // our proto-photo still needs to be scaled by Photo
+                setPhotos([ photo, ...photos ]);
+              }
+              }
+            />
+          ) : <Box pad="large" />}
+        </Header>
+        {!photos ? <Loading Icon={Calendar} /> : (
+          <Photos
+            event={event}
+            photos={photos}
+            onDelete={(photo) => setPhotos(photos.filter(p => p.id !== photo.id))}
+          />
+        )}
       </Box>
     </Box>
   );

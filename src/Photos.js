@@ -2,18 +2,28 @@ import React from 'react';
 import { Box, Grid, Paragraph, ResponsiveContext } from 'grommet';
 import Photo from './Photo';
 
-const Photos = ({ event, photos }) => {
+const Photos = ({ event, photos, onDelete }) => {
   return (
     <ResponsiveContext.Consumer>
       {(responsive) => (
         <Box flex={false}>
           {responsive === 'small'
             ? photos.map(photo => (
-                <Photo key={photo.name} photo={photo} event={event} />))
-            : (
+                <Photo
+                  key={photo.id || photo.name}
+                  photo={photo}
+                  event={event}
+                  onDelete={onDelete}
+                />
+            )) : (
               <Grid columns="medium" rows="medium">
                 {photos.map(photo => (
-                  <Photo key={photo.name} photo={photo} event={event} />
+                  <Photo
+                    key={photo.id || photo.name}
+                    photo={photo}
+                    event={event}
+                    onDelete={onDelete}
+                  />
                 ))}
               </Grid>
             )
