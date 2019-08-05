@@ -13,8 +13,9 @@ const Event = ({ token }) => {
   const session = React.useContext(SessionContext);
   const [event, setEvent] = React.useState();
   const [photos, setPhotos] = React.useState();
+  const [refreshing, setRefreshing] = React.useState();
 
-  React.useEffect(() => {
+  const load = () => {
     fetch(`${apiUrl}/events?token=${token}`, 
       (session
         ? { headers: { 'Authorization': `Bearer ${session.token}` } }
@@ -30,15 +31,39 @@ const Event = ({ token }) => {
             : undefined),
         )
           .then(response => response.json())
-          .then(setPhotos);
+          .then(setPhotos)
+          .then(() => setRefreshing(false));
       });
-  }, [token, session]);
+  }
+
+  React.useEffect(load, [token, session]);
+
+  React.useEffect(() => {
+    let scrollTimer;
+
+    const onScroll = () => {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        if (window.scrollY < 0) {
+          // user is holding the scroll position down, refresh
+          setRefreshing(true);
+          load();
+        }
+      }, 500);
+    }
+
+    document.addEventListener('scroll', onScroll);
+    return () => document.removeEventListener('scroll', onScroll);
+  });
 
   const canAdd = event && (!event.locked
     || (session && (session.admin || session.userId === event.userId)));
 
   return (
-    <Box background="dark-1" style={{ minHeight: '100vh' }}>
+    <Box
+      background={refreshing ? 'accent-1' : 'dark-1'}
+      style={{ minHeight: '100vh' }}
+    >
       <Header overflow="hidden" margin={undefined}>
         {(session && session.admin)
           ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
