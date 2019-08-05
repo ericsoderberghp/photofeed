@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Grid, Paragraph, ResponsiveContext } from 'grommet';
+import { Box, Paragraph, ResponsiveContext } from 'grommet';
 import Photo from './Photo';
 
 const Photos = ({ event, photos, onDelete }) => {
@@ -16,16 +16,17 @@ const Photos = ({ event, photos, onDelete }) => {
                   onDelete={onDelete}
                 />
             )) : (
-              <Grid columns="medium" rows="medium">
+              <Box direction="row" wrap>
                 {photos.map(photo => (
                   <Photo
                     key={photo.id || photo.name}
+                    fill
                     photo={photo}
                     event={event}
                     onDelete={onDelete}
                   />
                 ))}
-              </Grid>
+              </Box>
             )
           }
           {!photos.length && (

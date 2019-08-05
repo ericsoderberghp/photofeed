@@ -50,7 +50,7 @@ const Events = () => {
                     hoverIndicator
                   >
                     <Box pad={{ horizontal: 'large', vertical: 'medium' }}>
-                      <Text>{event.name}</Text>
+                      <Text weight="bold">{event.name}</Text>
                     </Box>
                   </RoutedButton>
                 </Box>

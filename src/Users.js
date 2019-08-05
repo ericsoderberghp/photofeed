@@ -49,7 +49,7 @@ const Users = () => {
                   hoverIndicator
                 >
                   <Box pad={{ horizontal: 'large', vertical: 'medium' }}>
-                    <Text>{user.name}</Text>
+                    <Text weight="bold">{user.name}</Text>
                   </Box>
                 </RoutedButton>
               </Box>

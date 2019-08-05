@@ -6,7 +6,7 @@ import { apiUrl } from './utils';
 
 const resolution = 1080;
 
-const Photo = ({ event, photo: photoArg, onDelete }) => {
+const Photo = ({ event, photo: photoArg, fill, onDelete }) => {
   const session = React.useContext(SessionContext);
   const [photo, setPhoto] = React.useState(photoArg);
   const [confirmDelete, setConfirmDelete] = React.useState();
@@ -65,14 +65,21 @@ const Photo = ({ event, photo: photoArg, onDelete }) => {
     setPhoto(scaledPhoto);
   }
 
-  const height = photo.aspectRatio ? `${100 * (1 / photo.aspectRatio)}vw` : '80vh';
+  let height;
+  let width;
+  if (fill) {
+    height = photo.aspectRatio ? `${(resolution / 2) * (1 / photo.aspectRatio)}px` : 'large';
+    width = photo.aspectRatio ? `${resolution / 2}px` : 'large';
+  } else {
+    height = photo.aspectRatio ? `${100 * (1 / photo.aspectRatio)}vw` : '80vh';
+  }
 
   return (
     <Box flex={false} animation="fadeIn">
       <Stack anchor="bottom-right">
-        <Box height={height} overflow="hidden">
+        <Box height={height} width={width} overflow="hidden">
           <Image
-            fit="cover"
+            fit={fill ? 'contain' : "cover"}
             src={photo.src}
             onLoad={!photo.aspectRatio ? scale : undefined}
           />
