@@ -178,8 +178,8 @@ const Photo = ({ event, photo: photoArg, fill, onDelete }) => {
                     },
                   })
                     .then(() => setConfirmDelete(undefined))
-                    .then(() => onDelete(photo))
                     .then(() => setDeleted(true))
+                    .then(() => onDelete(photo))
                     .catch(() => setDeleting(false));
                 }}
               />
