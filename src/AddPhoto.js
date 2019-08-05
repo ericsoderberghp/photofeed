@@ -3,6 +3,7 @@ import {
   Box, Button, Form, FormField, Layer, Paragraph, Stack, TextInput,
 } from 'grommet';
 import { Add } from 'grommet-icons';
+import EXIF from 'exif-js';
 import SessionContext from './SessionContext';
 
 const AddPhoto = ({ event, onAdd }) => {
@@ -33,6 +34,13 @@ const AddPhoto = ({ event, onAdd }) => {
       photo.userName = userName;
       photo.eventToken = event.token;
     }
+    // read EXIF data
+    EXIF.getData(file, function () {
+      const orientation = EXIF.getTag(file, "Orientation");
+      if (orientation) {
+        photo.orientation = orientation;
+      }
+    });
     // make it a dataURL so Photo can render it and then scale it
     const reader = new FileReader();
     reader.onload = (event2) => {

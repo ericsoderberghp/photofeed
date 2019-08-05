@@ -62,8 +62,7 @@ const Event = ({ token }) => {
             onAdd={(photo) => {
               // our proto-photo still needs to be scaled by Photo
               setPhotos([ photo, ...photos ]);
-            }
-            }
+            }}
           />
         ) : <Box pad="large" />}
       </Header>
