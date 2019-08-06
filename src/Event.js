@@ -7,6 +7,7 @@ import SessionContext from './SessionContext';
 import RoutedButton from './RoutedButton';
 import Photos from './Photos';
 import AddPhoto from './AddPhoto';
+import Player from './Player';
 import { apiUrl } from './utils';
 
 const Event = ({ token }) => {
@@ -14,6 +15,7 @@ const Event = ({ token }) => {
   const [event, setEvent] = React.useState();
   const [photos, setPhotos] = React.useState();
   const [refreshing, setRefreshing] = React.useState();
+  const [play, setPlay] = React.useState();
 
   const load = () => {
     fetch(`${apiUrl}/events?token=${token}`, 
@@ -55,6 +57,21 @@ const Event = ({ token }) => {
     document.addEventListener('scroll', onScroll);
     return () => document.removeEventListener('scroll', onScroll);
   });
+
+  React.useEffect(() => {
+    const onTouchStart = (event) => {
+      if (event.touches.length === 3) {
+        setPlay(true);
+      }
+    }
+
+    document.addEventListener('touchstart', onTouchStart);
+    return () => document.removeEventListener('touchstart', onTouchStart);
+  }, [play]);
+
+  if (play) {
+    return <Player event={event} photos={photos} onDone={() => setPlay(false)} />;
+  }
 
   const canAdd = event && (!event.locked
     || (session && (session.admin || session.userId === event.userId)));

@@ -184,11 +184,13 @@ const Photo = ({ event, photo: photoArg, fill, onDelete }) => {
                 }}
               />
             )}
-            <Button
-              icon={<Trash />}
-              hoverIndicator
-              onClick={() => setConfirmDelete(!confirmDelete)}
-            />
+            {onDelete && (
+              <Button
+                icon={<Trash />}
+                hoverIndicator
+                onClick={() => setConfirmDelete(!confirmDelete)}
+              />
+            )}
           </Box>
         )}
       </Stack>
