@@ -10,8 +10,10 @@ import { apiUrl } from './utils';
 const Users = () => {
   const session = React.useContext(SessionContext);
   const [users, setUsers] = React.useState();
+  const [add, setAdd] = React.useState();
   const [adding, setAdding] = React.useState();
   const [confirmDelete, setConfirmDelete] = React.useState();
+  const [deleting, setDeleting] = React.useState();
 
   React.useEffect(() => {
     document.title = 'Users - Photo Feed';
@@ -41,6 +43,8 @@ const Users = () => {
               justify="between"
               align="center"
               margin={{ bottom: 'medium' }}
+              background={deleting === user.id
+                ? { color: 'dark-2', opacity: 'medium' } : undefined}
             >
               <Box flex>
                 <RoutedButton
@@ -54,28 +58,32 @@ const Users = () => {
                 </RoutedButton>
               </Box>
               <Box flex={false} direction="row" align="center">
-                <Button
-                  icon={<Share />}
-                  hoverIndicator
-                  onClick={() => navigator.share({
-                    title: `${user.name} - Photo Feed`,
-                    text: `${user.name} - Photo Feed`,
-                    url: `/users/${encodeURIComponent(user.token)}`,
-                  })}
-                />
+                {navigator.share && (user.id !== confirmDelete) && (
+                  <Button
+                    icon={<Share />}
+                    hoverIndicator
+                    onClick={() => navigator.share({
+                      title: `${user.name} - Photo Feed`,
+                      text: `${user.name} - Photo Feed`,
+                      url: `/users/${encodeURIComponent(user.token)}`,
+                    })}
+                  />
+                )}
                 {(user.id === confirmDelete) && (
                   <Button
                     icon={<Trash color="status-critical" />}
                     hoverIndicator
                     onClick={() => {
+                      setDeleting(user.id);
+                      setConfirmDelete(undefined);
                       fetch(`${apiUrl}/users/${encodeURIComponent(user.id)}`, {
                         method: 'DELETE',
                         headers: {
                           'Authorization': `Bearer ${session.token}`,
                         },
                       })
-                        .then(() => setUsers(users.filter(u => u.id !== user.id)))
-                        .then(() => setConfirmDelete(undefined));
+                        .then(() => setDeleting(undefined))
+                        .then(() => setUsers(users.filter(u => u.id !== user.id)));
                     }}
                   />
                 )}
@@ -89,9 +97,9 @@ const Users = () => {
             </Box>
           ))}
           <Box align="center" margin="large">
-            <Button label="New User" onClick={() => setAdding(!adding)} />
+            <Button label="New User" onClick={() => setAdd(!add)} />
           </Box>
-          {adding && (
+          {add && (
             <Box
               pad={{ horizontal: 'large', vertical: 'xlarge' }}
               background="neutral-3"
@@ -99,6 +107,7 @@ const Users = () => {
               <Form
                 value={{ name: '', email: '', password: '', admin: false }}
                 onSubmit={({ value }) => {
+                  setAdding(true);
                   fetch(`${apiUrl}/users`, {
                     method: 'POST',
                     headers: {
@@ -109,7 +118,9 @@ const Users = () => {
                   })
                     .then(response => response.json())
                     .then((user) => setUsers([user, ...users]))
-                    .then(() => setAdding(false));
+                    .then(() => setAdd(false))
+                    .then(() => setAdding(false))
+                    .catch(() => setAdding(false));
                 }}
               >
                 <FormField name="name" placeholder="name" required />
@@ -117,7 +128,9 @@ const Users = () => {
                 <FormField name="password" placeholder="password" />
                 <FormField name="admin" pad component={CheckBox} label="administrator?" />
                 <Box align="center" margin={{ top: 'large' }}>
-                  <Button type="submit" label="Add User" />
+                  {adding
+                    ? <Text>Just a sec ...</Text>
+                    : <Button type="submit" primary label="Add User" />}
                 </Box>
               </Form>
             </Box>

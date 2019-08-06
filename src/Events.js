@@ -10,8 +10,10 @@ import { apiUrl } from './utils';
 const Events = () => {
   const session = React.useContext(SessionContext);
   const [events, setEvents] = React.useState();
+  const [add, setAdd] = React.useState();
   const [adding, setAdding] = React.useState();
   const [confirmDelete, setConfirmDelete] = React.useState();
+  const [deleting, setDeleting] = React.useState();
 
   React.useEffect(() => {
     fetch(`${apiUrl}/events`, {
@@ -42,6 +44,8 @@ const Events = () => {
                 justify="between"
                 align="center"
                 margin={{ bottom: 'medium' }}
+                background={deleting === event.id
+                  ? { color: 'dark-2', opacity: 'medium' } : undefined}
               >
                 <Box flex>
                   <RoutedButton
@@ -55,7 +59,7 @@ const Events = () => {
                   </RoutedButton>
                 </Box>
                 <Box flex={false} direction="row" align="center">
-                  {navigator.share && (
+                  {navigator.share && (event.id !== confirmDelete) && (
                     <Button
                       icon={<Share />}
                       hoverIndicator
@@ -66,24 +70,28 @@ const Events = () => {
                       })}
                     />
                   )}
-                  <RoutedButton
-                    path={`/events/edit/${event.id}`}
-                    icon={<Edit />}
-                    hoverIndicator
-                  />
+                  {(event.id !== confirmDelete) && (
+                    <RoutedButton
+                      path={`/events/edit/${event.id}`}
+                      icon={<Edit />}
+                      hoverIndicator
+                    />
+                  )}
                   {(event.id === confirmDelete) && (
                     <Button
                       icon={<Trash color="status-critical" />}
                       hoverIndicator
                       onClick={() => {
+                        setDeleting(event.id);
+                        setConfirmDelete(undefined);
                         fetch(`${apiUrl}/events/${event.id}`, {
                           method: 'DELETE',
                           headers: {
                             'Authorization': `Bearer ${session.token}`,
                           },
                         })
-                          .then(() => setEvents(events.filter(e => e.id !== event.id)))
-                          .then(() => setConfirmDelete(undefined));
+                        .then(() => setDeleting(undefined))
+                        .then(() => setEvents(events.filter(e => e.id !== event.id)));
                       }}
                     />
                   )}
@@ -98,9 +106,9 @@ const Events = () => {
             ))}
 
             <Box align="center" margin="large">
-              <Button label="New Event" onClick={() => setAdding(!adding)} />
+              <Button label="New Event" onClick={() => setAdd(!add)} />
             </Box>
-            {adding && (
+            {add && (
               <Box
                 pad={{ horizontal: 'large', vertical: 'xlarge' }}
                 background="neutral-3"
@@ -108,6 +116,7 @@ const Events = () => {
                 <Form
                   value={{ name: '', userId: session.userId  }}
                   onSubmit={({ value }) => {
+                    setAdding(true);
                     const body = JSON.stringify(value);
                     fetch(`${apiUrl}/events`, {
                       method: 'POST',
@@ -120,12 +129,16 @@ const Events = () => {
                     })
                       .then(response => response.json())
                       .then((event) => setEvents([event, ...events]))
-                      .then(() => setAdding(false));
+                      .then(() => setAdd(false))
+                      .then(() => setAdding(false))
+                      .catch(() => setAdding(false));
                   }}
                 >
                   <FormField name="name" placeholder="name" required />
                   <Box align="center" margin={{ top: 'large' }}>
-                    <Button type="submit" label="Add Event" />
+                    {adding
+                      ? <Text>Just a sec ...</Text>
+                      : <Button type="submit" primary label="Add Event" />}
                   </Box>
                 </Form>
               </Box>
