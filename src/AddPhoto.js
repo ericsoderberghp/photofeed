@@ -59,7 +59,6 @@ const AddPhoto = ({ event, onAdd }) => {
         ref={inputRef}
         type="file"
         accept="image/*"
-        capture
         onChange={(event) => {
           const files = event.target.files;
           if (files) {
