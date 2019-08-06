@@ -11,6 +11,7 @@ const Photos = ({ event, photos, onDelete }) => {
             ? photos.map(photo => (
                 <Photo
                   key={photo.id || photo.name}
+                  fill="horizontal"
                   photo={photo}
                   event={event}
                   onDelete={onDelete}
@@ -20,7 +21,6 @@ const Photos = ({ event, photos, onDelete }) => {
                 {photos.map(photo => (
                   <Photo
                     key={photo.id || photo.name}
-                    fill
                     photo={photo}
                     event={event}
                     onDelete={onDelete}

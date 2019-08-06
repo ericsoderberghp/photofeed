@@ -119,11 +119,14 @@ const Photo = ({ event, photo: photoArg, fill, onDelete }) => {
   }
   let height;
   let width;
-  if (fill) {
+  if (fill === "horizontal") {
+    height = orientedAspect ? `${100 * (1 / orientedAspect)}vw` : '80vh';
+  } else if (!fill) {
     height = orientedAspect ? `${(resolution / 2) * (1 / orientedAspect)}px` : 'large';
     width = orientedAspect ? `${resolution / 2}px` : 'large';
   } else {
-    height = orientedAspect ? `${100 * (1 / orientedAspect)}vw` : '80vh';
+    height = '100%';
+    width = '100%';
   }
 
   // If we haven't scaled it yet, we might have to rotate it
@@ -135,67 +138,75 @@ const Photo = ({ event, photo: photoArg, fill, onDelete }) => {
     }
   }
 
-  return (
-    <Box flex={false} animation="fadeIn">
-      <Stack anchor="bottom-right">
-        <Box height={height} width={width} overflow="hidden">
-          <Image
-            fit={fill ? 'contain' : "cover"}
-            src={photo.src}
-            onLoad={!photo.aspectRatio ? scale : undefined}
-            style={style}
-          />
-        </Box>
-        {deleting && (
-          <Box
-            height={height}
-            width={width || `${resolution / 2}px`}
-            background={{ color: 'dark-2', opacity: 'strong' }}
-          />
-        )}
-        {!photo.id && (
-          <Box
-            height={height}
-            width={width || `${resolution / 2}px`}
-            background={{ color: 'light-2', opacity: 'strong' }}
-          />
-        )}
-        {session && (session.admin || session.userId === event.userId) && (
-          <Box>
-            {confirmDelete && !deleting && (
-              <Button
-                icon={(
-                  <Trash color={deleting ? 'status-unknown' : 'status-critical'} />
-                )}
-                hoverIndicator
-                disabled={deleting}
-                onClick={() => {
-                  setDeleting(true);
-                  fetch(`${apiUrl}/photos/${photo.id}`, {
-                    method: 'DELETE',
-                    headers: {
-                      'Authorization': `Bearer ${session.token}`,
-                    },
-                  })
-                    .then(() => setConfirmDelete(undefined))
-                    .then(() => setDeleted(true))
-                    .then(() => onDelete(photo))
-                    .catch(() => setDeleting(false));
-                }}
-              />
-            )}
-            {onDelete && (
-              <Button
-                icon={<Trash />}
-                hoverIndicator
-                onClick={() => setConfirmDelete(!confirmDelete)}
-              />
-            )}
-          </Box>
-        )}
-      </Stack>
+  let content = (
+    <Box height={height} width={width} overflow="hidden" align="center" justify="center">
+      <Image
+        fit="contain"
+        src={photo.src}
+        onLoad={!photo.aspectRatio ? scale : undefined}
+        style={style}
+      />
     </Box>
   );
+
+  if (onDelete) {
+    content = (
+      <Box flex={false} animation="fadeIn">
+        <Stack anchor="bottom-right">
+          {content}
+          {deleting && (
+            <Box
+              height={height}
+              width={width || `${resolution / 2}px`}
+              background={{ color: 'dark-2', opacity: 'strong' }}
+            />
+          )}
+          {!photo.id && (
+            <Box
+              height={height}
+              width={width || `${resolution / 2}px`}
+              background={{ color: 'light-2', opacity: 'strong' }}
+            />
+          )}
+          {session && (session.admin || session.userId === event.userId) && (
+            <Box>
+              {confirmDelete && !deleting && (
+                <Button
+                  icon={(
+                    <Trash color={deleting ? 'status-unknown' : 'status-critical'} />
+                  )}
+                  hoverIndicator
+                  disabled={deleting}
+                  onClick={() => {
+                    setDeleting(true);
+                    fetch(`${apiUrl}/photos/${photo.id}`, {
+                      method: 'DELETE',
+                      headers: {
+                        'Authorization': `Bearer ${session.token}`,
+                      },
+                    })
+                      .then(() => setConfirmDelete(undefined))
+                      .then(() => setDeleted(true))
+                      .then(() => onDelete(photo))
+                      .catch(() => setDeleting(false));
+                  }}
+                />
+              )}
+              {onDelete && (
+                <Button
+                  icon={<Trash />}
+                  hoverIndicator
+                  onClick={() => setConfirmDelete(!confirmDelete)}
+                />
+              )}
+            </Box>
+          )}
+        </Stack>
+      </Box>
+    );
+  }
+
+  return content;
 }
 
 export default Photo;

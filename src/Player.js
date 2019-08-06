@@ -1,53 +1,67 @@
 import React from 'react';
-import { Box, Button, Carousel, Stack } from 'grommet';
+import { Box, Button, Carousel, Keyboard, Stack } from 'grommet';
 import { Play, Pause } from 'grommet-icons';
 import Photo from './Photo';
 
-const Player = ({ event, photos }) => {
+const Player = ({ event, photos, onDone }) => {
   const [play, setPlay] = React.useState();
   const [showControls, setShowControls] = React.useState(true);
 
   React.useEffect(() => {
     let timer;
 
-    const onTouchStart = () => {
+    const show = () => {
       setShowControls(true);
       clearTimeout(timer);
       timer = setTimeout(() => setShowControls(false), 3000);
     }
 
-    document.addEventListener('touchstart', onTouchStart);
+    document.addEventListener('touchstart', show);
+    document.addEventListener('mousemove', show);
     return () => {
       clearTimeout(timer);
-      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchstart', show);
+      document.removeEventListener('mousemove', show);
     };
   }, []);
 
   return (
-    <Stack anchor="center">
-      <Box background="black" style={{ height: '100vh', width: '100vw' }}>
-        <Carousel fill play={play ? 3000 : undefined}>
-          {photos.map(photo => (
-            <Box key={photo.id || photo.name} fill align="center" justify="center">
+    <Keyboard
+      target="document"
+      onEsc={onDone}
+      onSpace={() => {
+        setPlay(!play);
+        setShowControls(false);
+      }}
+    >
+      <Stack anchor="center">
+        <Box
+          background="black"
+          overflow="hidden"
+          style={{ height: '100vh', width: '100vw' }}
+        >
+          <Carousel fill play={play ? 3000 : undefined}>
+            {photos.map(photo => (
               <Photo
+                key={photo.id || photo.name}
                 fill
                 photo={photo}
                 event={event}
               />
-            </Box>
-          ))}
-        </Carousel>
-      </Box>
-      {showControls && (
-        <Button
-          icon={play ? <Pause size="large" /> : <Play size="large" />}
-          onClick={() => {
-            setPlay(!play);
-            setShowControls(false);
-          }}
-        />
-      )}
-    </Stack>
+            ))}
+          </Carousel>
+        </Box>
+        {showControls && (
+          <Button
+            icon={play ? <Pause size="large" /> : <Play size="large" />}
+            onClick={() => {
+              setPlay(!play);
+              setShowControls(false);
+            }}
+          />
+        )}
+      </Stack>
+    </Keyboard>
   );
 }
 

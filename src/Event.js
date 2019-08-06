@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, Heading } from 'grommet';
+import { Box, Button, Heading, Keyboard } from 'grommet';
 import { Calendar, Image, Share } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
@@ -73,54 +73,62 @@ const Event = ({ token }) => {
     return <Player event={event} photos={photos} onDone={() => setPlay(false)} />;
   }
 
+  const onKeyDown = (event) => {
+    if (event.key === 'p') {
+      setPlay(true);
+    }
+  }
+
   const canAdd = event && (!event.locked
     || (session && (session.admin || session.userId === event.userId)));
 
   return (
-    <Box
-      background={refreshing ? 'accent-1' : 'dark-1'}
-      style={{ minHeight: '100vh' }}
-    >
-      <Header
-        overflow="hidden"
-        margin={undefined}
-        background={{ color: 'dark-1', opacity: 'medium' }}
-        style={{ position: 'absolute', top: 0, width: '100vw', zIndex: 10 }}
+    <Keyboard target="document" onKeyDown={onKeyDown}>
+      <Box
+        background={refreshing ? 'accent-1' : 'dark-1'}
+        style={{ minHeight: '100vh' }}
       >
-        {(session && session.admin)
-          ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
-          : (navigator.share ? (
-            <Button
-              icon={<Share />}
-              hoverIndicator
-              onClick={() => navigator.share({
-                title: event.name,
-                text: event.name,
-                url: `/events/${encodeURIComponent(event.token)}`,
-              })}
+        <Header
+          overflow="hidden"
+          margin={undefined}
+          background={{ color: 'dark-1', opacity: 'medium' }}
+          style={{ position: 'absolute', top: 0, width: '100vw', zIndex: 10 }}
+        >
+          {(session && session.admin)
+            ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
+            : (navigator.share ? (
+              <Button
+                icon={<Share />}
+                hoverIndicator
+                onClick={() => navigator.share({
+                  title: event.name,
+                  text: event.name,
+                  url: `/events/${encodeURIComponent(event.token)}`,
+                })}
+              />
+            ) : <Box pad="large" />)
+          }
+          <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
+          {canAdd ? (
+            <AddPhoto
+              session={session}
+              event={event}
+              onAdd={(photo) => {
+                // our proto-photo still needs to be scaled by Photo
+                setPhotos([ photo, ...photos ]);
+              }}
             />
-          ) : <Box pad="large" />)
-        }
-        <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
-        {canAdd ? (
-          <AddPhoto
-            session={session}
+          ) : <Box pad="large" />}
+        </Header>
+        {!photos ? <Loading Icon={Calendar} /> : (
+          <Photos
             event={event}
-            onAdd={(photo) => {
-              // our proto-photo still needs to be scaled by Photo
-              setPhotos([ photo, ...photos ]);
-            }}
+            photos={photos}
+            onDelete={(photo) => setPhotos(photos.filter(p => p.id !== photo.id))}
           />
-        ) : <Box pad="large" />}
-      </Header>
-      {!photos ? <Loading Icon={Calendar} /> : (
-        <Photos
-          event={event}
-          photos={photos}
-          onDelete={(photo) => setPhotos(photos.filter(p => p.id !== photo.id))}
-        />
-      )}
-    </Box>
+        )}
+      </Box>
+    </Keyboard>
   );
 }
 
