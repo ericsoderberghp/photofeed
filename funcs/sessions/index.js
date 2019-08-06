@@ -103,13 +103,13 @@ exports.sessions = (req, res) => {
     return db.collection('users').where('email', '==', email).get()
       .then((querySnap) => {
         if (querySnap.empty) {
-          res.status(403).send();
+          res.status(403).send('sorry, not recognized');
           return;
         }
         const userSnap = querySnap.docs[0];
         return checkPassword(password, userSnap.data())
           .then(() => addSession(userSnap))
-          .catch(() => res.status(403).send())
+          .catch(() => res.status(403).send('sorry, not recognized'))
         // return hashPassword(password)
         //   .then(auth => db.collection('users').add({ name, email, auth }))
         //   .then(userRef => userRef.get())

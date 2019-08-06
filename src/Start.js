@@ -4,6 +4,8 @@ import { apiUrl } from './utils';
 
 const Start = ({ onSession }) => {
   const [busy, setBusy] = React.useState();
+  const [error, setError] = React.useState();
+
   return (
     <Box pad="large" align="center">
       <Heading textAlign="center">Welcome</Heading>
@@ -22,7 +24,17 @@ const Start = ({ onSession }) => {
             },
             body,
           })
-            .then(response => response.json())
+            .then((response) => {
+              if (!response.ok) {
+                return response.text()
+                  .then((text) => {
+                    setError(text);
+                    throw new Error(text);
+                  });
+              } else {
+                return response.json();
+              }
+            })
             .then((session) => {
               localStorage.setItem('session', JSON.stringify(session));
               onSession(session);
@@ -32,6 +44,11 @@ const Start = ({ onSession }) => {
       >
         <FormField name="email" placeholder="email" required />
         <FormField name="password" placeholder="password" type="password" required />
+        {error && (
+          <Box pad="medium" align="center">
+            <Text color="status-critical">{error}</Text>
+          </Box>
+        )}
         <Box align="center" margin={{ top: 'large' }}>
           {busy
             ? <Text>Just a sec ...</Text>
