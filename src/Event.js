@@ -64,7 +64,12 @@ const Event = ({ token }) => {
       background={refreshing ? 'accent-1' : 'dark-1'}
       style={{ minHeight: '100vh' }}
     >
-      <Header overflow="hidden" margin={undefined}>
+      <Header
+        overflow="hidden"
+        margin={undefined}
+        background={{ color: 'dark-1', opacity: 'medium' }}
+        style={{ position: 'absolute', top: 0, width: '100vw', zIndex: 10 }}
+      >
         {(session && session.admin)
           ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
           : (navigator.share ? (
