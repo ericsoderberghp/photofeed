@@ -1,12 +1,13 @@
 import React from 'react';
-import { Box, Button, Image, Stack } from 'grommet';
+import { Anchor, Box, Button, Image, Stack } from 'grommet';
 import { Trash } from 'grommet-icons';
 import SessionContext from './SessionContext';
+import { Pusher } from './Router';
 import { apiUrl } from './utils';
 
 const resolution = 1080;
 
-const Photo = ({ event, photo, fill, onDelete }) => {
+const Photo = ({ event, photo, push, fill, onDelete }) => {
   const session = React.useContext(SessionContext);
   const [confirmDelete, setConfirmDelete] = React.useState();
   const [deleting, setDeleting] = React.useState();
@@ -27,7 +28,15 @@ const Photo = ({ event, photo, fill, onDelete }) => {
   }
 
   let content = (
-    <Box height={height} width={width} overflow="hidden" align="center" justify="center">
+    <Box
+      height={height}
+      width={width}
+      overflow="hidden"
+      align="center"
+      justify="center"
+      onClick={!event ? () => push(`/events/${photo.eventToken}#${photo.id}`) : undefined}
+    >
+      <Anchor name={photo.id} />
       <Image fit="contain" src={photo.src} />
     </Box>
   );
@@ -92,4 +101,8 @@ const Photo = ({ event, photo, fill, onDelete }) => {
   return content;
 }
 
-export default Photo;
+export default (props) => (
+  <Pusher>
+    {(push) => <Photo {...props} push={push} />}
+  </Pusher>
+);

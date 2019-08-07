@@ -131,13 +131,14 @@ exports.photos = (req, res) => {
           let photos = [];
           const queries = [];
           eventQuerySnap.forEach((eventSnap) => {
+            const { token: eventToken } = eventSnap.data();
             queries.push(db.collection('photos')
               .where('eventId', '==', eventSnap.id)
               .orderBy('date', 'desc').get()
               .then(photosQuerySnap => {
                 photos = photos.concat(
                   photosQuerySnap.docs.map(photoSnap =>
-                    ({ id: photoSnap.id, ...photoSnap.data() }))
+                    ({ id: photoSnap.id, eventToken, ...photoSnap.data() }))
                 );
               }));
           });
