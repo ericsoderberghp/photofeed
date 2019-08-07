@@ -1,5 +1,5 @@
 import React from 'react';
-import { Anchor, Box, Button, Image, Stack } from 'grommet';
+import { Box, Button, Image, Stack } from 'grommet';
 import { Trash } from 'grommet-icons';
 import SessionContext from './SessionContext';
 import { Pusher } from './Router';
@@ -20,15 +20,21 @@ const Photo = ({ event, photo, push, fill, blackAndWhite, onDelete }) => {
   if (fill === "horizontal") {
     height = `${100 * (1 / photo.aspectRatio)}vw`;
   } else if (!fill) {
-    height = `${(resolution / 2) * (1 / photo.aspectRatio)}px`;
-    width = `${resolution / 2}px`;
-  } else {
+    if (photo.aspectRatio >= 1) {
+      width = `${(resolution / 2)}px`;
+      height = `${(resolution / 2) * (1 / photo.aspectRatio)}px`;
+    } else {
+      height = `${(resolution / 2)}px`;
+      width = `${(resolution / 2) * (photo.aspectRatio)}px`;
+    }
+  } else { // fill
     height = '100%';
     width = '100%';
   }
 
   let content = (
     <Box
+      id={photo.id}
       height={height}
       width={width}
       overflow="hidden"
@@ -36,7 +42,6 @@ const Photo = ({ event, photo, push, fill, blackAndWhite, onDelete }) => {
       justify="center"
       onClick={!event ? () => push(`/events/${photo.eventToken}#${photo.id}`) : undefined}
     >
-      <Anchor name={photo.id} />
       <Image
         fit="contain"
         src={photo.src}
