@@ -17,7 +17,7 @@ const Photos = ({ event, photos, onDelete }) => {
                   onDelete={onDelete}
                 />
             )) : (
-              <Box direction="row" wrap>
+              <Box direction="row" align="center" justify="center" wrap>
                 {photos.map(photo => (
                   <Photo
                     key={photo.id || photo.name}
