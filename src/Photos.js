@@ -1,10 +1,21 @@
 import React from 'react';
-import { Box, Grid, Heading, Keyboard, Paragraph, ResponsiveContext } from 'grommet';
+import {
+  Box, Button, DropButton, Grid, Heading, Keyboard, Paragraph,
+  ResponsiveContext, Text,
+} from 'grommet';
 import { Calendar } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
 import Player from './Player';
 import Photo from './Photo';
+
+const MenuButton = ({ label, onClick }) => (
+  <Button hoverIndicator onClick={onClick}>
+    <Box pad="medium">
+      <Text size="large" textAlign="center">{label}</Text>
+    </Box>
+  </Button>
+);
 
 const Photos = ({
   name, leftControl, rightControl, insert, event, photos, onRefresh, onDelete,
@@ -12,6 +23,7 @@ const Photos = ({
   const [refreshing, setRefreshing] = React.useState(photos);
   const [play, setPlay] = React.useState();
   const [effects, setEffects] = React.useState({});
+  const headerRef = React.useRef();
 
   React.useEffect(() => {
     let scrollTimer;
@@ -34,18 +46,6 @@ const Photos = ({
   // Clear refreshing if we get new photos
   React.useEffect(() => setRefreshing(false), [photos]);
 
-  // TODO: change this mechanism
-  React.useEffect(() => {
-    const onTouchStart = (event) => {
-      if (event.touches.length === 3) {
-        setPlay(true);
-      }
-    }
-
-    document.addEventListener('touchstart', onTouchStart);
-    return () => document.removeEventListener('touchstart', onTouchStart);
-  }, [play]);
-
   let content;
   if (play) {
     content = (
@@ -63,13 +63,38 @@ const Photos = ({
         style={{ minHeight: '100vh' }}
       >
         <Header
+          ref={headerRef}
           overflow="hidden"
           margin={undefined}
-          background={{ color: 'dark-1', opacity: 'medium' }}
+          background={{ color: 'dark-1', opacity: 'strong' }}
           style={{ position: 'absolute', top: 0, width: '100vw', zIndex: 10 }}
         >
           {leftControl || <Box pad="medium" />}
-          <Heading size="small" margin="none">{name}</Heading>
+          <DropButton
+            dropTarget={headerRef.current}
+            dropAlign={{ top: 'bottom' }}
+            dropProps={{ plain: true, stretch: false }}
+            dropContent={(
+              <Box
+                width="medium"
+                background={{ color: 'dark-2', opacity: 'strong' }}
+              >
+                <MenuButton label="Slideshow" onClick={() => setPlay(true)} />
+                <MenuButton
+                  label={effects.blackAndWhite ? 'Color' : 'Black and White'}
+                  onClick={() =>
+                    setEffects({ ...effects, blackAndWhite: !effects.blackAndWhite })}
+                />
+                <MenuButton
+                  label={effects.toss ? 'Straighten' : 'Muss'}
+                  onClick={() =>
+                    setEffects({ ...effects, toss: !effects.toss })}
+                />
+              </Box>
+            )}
+          >
+            <Heading size="small" margin="none">{name}</Heading>
+          </DropButton>
           {rightControl || <Box pad="medium" />}
         </Header>
         {refreshing && <Box background="accent-1" pad="large" />}
