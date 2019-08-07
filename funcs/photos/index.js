@@ -7,7 +7,7 @@ const storage = new Storage();
 const bucketName = 'photofeed-photos';
 const bucket = storage.bucket(bucketName);
 
-const authorize = (req, res) => {
+const authorize = (req, res, admin = true) => {
   const auth = req.get('Authorization');
   if (!auth) {
     res.status(403).send('missing Authorization');
@@ -26,7 +26,7 @@ const authorize = (req, res) => {
         throw new Error('no session');
       }
       const session = querySnap.docs[0].data();
-      if (!session.admin) {
+      if (admin && !session.admin) {
         res.status(403).send('not admin');
         throw new Error('not admin');
       }
@@ -103,7 +103,7 @@ exports.photos = (req, res) => {
 
   if (req.method === 'GET') {
     const id = decodeURIComponent(req.path.split('/')[1] || '');
-    if (id) {
+    if (id) { // single photo
       return db.collection('photos').doc(id).get()
         .then(photoSnap => {
           if (!photoSnap.exists) {
@@ -113,9 +113,8 @@ exports.photos = (req, res) => {
           }
         });
     }
-    if (!req.query.eventId) {
-      res.status(400).send();
-    } else {
+
+    if (req.query.eventId) { // photos for event
       return db.collection('photos')
         .where('eventId', '==', req.query.eventId)
         .orderBy('date', 'desc').get()
@@ -124,6 +123,31 @@ exports.photos = (req, res) => {
             ({ id: photoSnap.id, ...photoSnap.data() }))));
     }
 
+    // photos for all events this user owns
+    return authorize(req, res, false)
+      .then(session => db.collection('events')
+        .where('userId', '==', session.userId).get()
+        .then((eventQuerySnap) => {
+          let photos = [];
+          const queries = [];
+          eventQuerySnap.forEach((eventSnap) => {
+            queries.push(db.collection('photos')
+              .where('eventId', '==', eventSnap.id)
+              .orderBy('date', 'desc').get()
+              .then(photosQuerySnap => {
+                photos = photos.concat(
+                  photosQuerySnap.docs.map(photoSnap =>
+                    ({ id: photoSnap.id, ...photoSnap.data() }))
+                );
+              }));
+          });
+          return Promise.all(queries)
+            .then(() => {
+              photos.sort((p1, p2) => p2.date - p1.date);
+              return photos;
+            })
+            .then(() => res.json(photos));
+        }));
   }
 
   if (req.method === 'POST') {

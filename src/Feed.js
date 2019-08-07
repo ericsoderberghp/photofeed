@@ -1,42 +1,70 @@
 import React from 'react';
-import { Box, Heading, Paragraph } from 'grommet';
-import { Image } from 'grommet-icons';
+import { Box, Heading } from 'grommet';
+import { Calendar, Image } from 'grommet-icons';
+import Loading from './Loading';
 import Header from './Header';
+import SessionContext from './SessionContext';
 import RoutedButton from './RoutedButton';
-import Photo from './Photo';
+import Photos from './Photos';
+import { apiUrl } from './utils';
 
 const Feed = () => {
-  const [photos, setPhotos] = React.useState([]);
+  const session = React.useContext(SessionContext);
+  const [photos, setPhotos] = React.useState();
+  const [refreshing, setRefreshing] = React.useState();
 
   React.useEffect(() => {
     document.title = 'Photo Feed';
   }, []);
 
+  const load = () => {
+    fetch(`${apiUrl}/photos`,
+      (session
+        ? { headers: { 'Authorization': `Bearer ${session.token}` } }
+        : undefined),
+    )
+      .then(response => response.json())
+      .then(setPhotos)
+      .then(() => setRefreshing(false));
+  }
+
+  React.useEffect(load, [session]);
+
+  React.useEffect(() => {
+    let scrollTimer;
+
+    const onScroll = () => {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        if (window.scrollY < 0) {
+          // user is holding the scroll position down, refresh
+          setRefreshing(true);
+          load();
+        }
+      }, 500);
+    }
+
+    document.addEventListener('scroll', onScroll);
+    return () => document.removeEventListener('scroll', onScroll);
+  });
+
   return (
-    <Box background="dark-1">
-      <Header margin={undefined}>
+    <Box
+      background={refreshing ? 'accent-1' : 'dark-1'}
+      style={{ minHeight: '100vh' }}
+    >
+      <Header
+        margin={undefined}
+        background={{ color: 'dark-1', opacity: 'medium' }}
+        style={{ position: 'absolute', top: 0, width: '100vw', zIndex: 10 }}
+      >
         <RoutedButton path="/events" icon={<Image />} hoverIndicator />
         <Heading size="small" margin="none">Photo Feed</Heading>
         <Box pad="large" />
       </Header>
-      <Box flex pad="large" justify="center" background="neutral-1">
-        <Paragraph textAlign="center">
-          A combined photo feed is still in the works, but not quite ready yet. :(
-        </Paragraph>
-      </Box>
-      {photos.map((photo, index) => (
-        <Photo
-          key={photo.name}
-          photo={photo}
-          onDelete={() => {
-            const nextPhotos = [...photos];
-            nextPhotos.splice(index, 1);
-            localStorage.setItem('photoIds',
-              JSON.stringify(nextPhotos.map(p => p.id)));
-            setPhotos(nextPhotos);
-          }}
-        />
-      ))}
+      {!photos ? <Loading Icon={Calendar} /> : (
+          <Photos photos={photos} />
+        )}
     </Box>
   );
 }
