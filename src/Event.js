@@ -1,7 +1,6 @@
 import React from 'react';
-import { Box, Button } from 'grommet';
+import { Button } from 'grommet';
 import { Image, Share } from 'grommet-icons';
-import Loading from './Loading';
 import SessionContext from './SessionContext';
 import RoutedButton from './RoutedButton';
 import AddPhoto from './AddPhoto';
@@ -12,7 +11,6 @@ const Event = ({ token }) => {
   const session = React.useContext(SessionContext);
   const [event, setEvent] = React.useState();
   const [photos, setPhotos] = React.useState();
-  const [adding, setAdding] = React.useState();
 
   const load = () => {
     fetch(`${apiUrl}/events?token=${token}`, 
@@ -65,21 +63,8 @@ const Event = ({ token }) => {
           <AddPhoto
             session={session}
             event={event}
-            onAdding={setAdding}
-            onAdd={(photo) => setPhotos([ photo, ...photos ])}
+            onAdd={(photo) => setPhotos(prevPhotos => [ photo, ...prevPhotos ])}
           />
-        ) : undefined
-      }
-      insert={adding
-        ? (
-          <Box
-            basis="medium"
-            background={{ color: 'light-2', opacity: 'medium' }}
-            align="center"
-            justify="center"
-          >
-            <Loading Icon={Image} />
-          </Box>
         ) : undefined
       }
     />

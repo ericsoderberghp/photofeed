@@ -18,7 +18,7 @@ const MenuButton = ({ label, onClick }) => (
 );
 
 const Photos = ({
-  name, leftControl, rightControl, insert, event, photos, onRefresh, onDelete,
+  name, leftControl, rightControl, event, photos, onRefresh, onDelete,
 }) => {
   const [refreshing, setRefreshing] = React.useState(photos);
   const [play, setPlay] = React.useState();
@@ -98,7 +98,6 @@ const Photos = ({
           {rightControl || <Box pad="medium" />}
         </Header>
         {refreshing && <Box background="accent-1" pad="large" />}
-        {insert}
         {!photos ? <Box margin="xlarge"><Loading Icon={Calendar} /></Box> : (
           <ResponsiveContext.Consumer>
             {(responsive) => (

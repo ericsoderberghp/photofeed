@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Box, Button, Form, FormField, Layer, Paragraph, Stack, TextInput,
+  Box, Button, Form, FormField, Layer, Meter, Paragraph, Stack, Text, TextInput,
 } from 'grommet';
 import { Add } from 'grommet-icons';
 import EXIF from 'exif-js';
@@ -19,10 +19,12 @@ const orientationRotation = {
   8: 270,
 };
 
-const AddPhoto = ({ event, onAdding, onAdd }) => {
+const AddPhoto = ({ event, onAdd }) => {
   const session = React.useContext(SessionContext);
   const [naming, setNaming] = React.useState();
   const [userName, setUserName] = React.useState();
+  const [adding, setAdding] = React.useState(0);
+  const [total, setTotal] = React.useState(0);
   const inputRef = React.useRef();
 
   React.useEffect(() => {
@@ -35,7 +37,6 @@ const AddPhoto = ({ event, onAdding, onAdd }) => {
   }, [session]);
 
   const addPhoto = (file) => {
-    onAdding(true);
     const photo = {
       name: file.name,
       type: file.type,
@@ -123,7 +124,7 @@ const AddPhoto = ({ event, onAdding, onAdd }) => {
           })
             .then(response => response.json())
             .then((photo) => {
-              onAdding(false);
+              setAdding(prevAdding => prevAdding - 1);
               onAdd(photo);
             });
         }, photo.type);
@@ -137,16 +138,19 @@ const AddPhoto = ({ event, onAdding, onAdd }) => {
 
   return (
     <Stack
-      guidingChild="last"
-      interactiveChild={(userName || session) ? 'first' : 'last'}
+      guidingChild={1}
+      interactiveChild={(userName || session) ? 'first' : 1}
     >
       <TextInput
         ref={inputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={(event) => {
           const files = event.target.files;
           if (files) {
+            setAdding(files.length);
+            setTotal(files.length);
             for (let i=0; i<files.length; i++) {
               addPhoto(files[i]);
             }
@@ -154,7 +158,7 @@ const AddPhoto = ({ event, onAdding, onAdd }) => {
         }}
         style={{ opacity: 0 }}
       />
-      <Box>
+      <Box style={adding ? { opacity: 0 } : undefined}>
         <Button
           title="Add a photo"
           icon={<Add />}
@@ -198,6 +202,23 @@ const AddPhoto = ({ event, onAdding, onAdd }) => {
           </Layer>
         )}
       </Box>
+      {adding ? (
+        <Stack anchor="center">
+          <Meter
+            type="circle"
+            size="xxsmall"
+            thickness="xsmall"
+            max={total}
+            values={[{ value: total - adding }]}
+          />
+          <Text
+            weight="bold"
+            style={{ display: 'block', marginTop: '-8px' }}
+          >
+            {adding}
+          </Text>
+        </Stack>
+      ) : null}
     </Stack>
   );
 }
