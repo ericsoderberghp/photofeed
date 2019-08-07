@@ -40,7 +40,7 @@ const Player = ({ event, photos, effects, onDone }) => {
           overflow="hidden"
           style={{ height: '100vh', width: '100vw' }}
         >
-          <Carousel fill play={play ? 3000 : undefined}>
+          <Carousel fill play={play ? 4000 : undefined}>
             {photos.map(photo => (
               <Photo
                 key={photo.id || photo.name}
