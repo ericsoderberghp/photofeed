@@ -85,7 +85,6 @@ const AddPhoto = ({ event, onAdding, onAdd }) => {
             scaledWidth = naturalWidth * (scaledHeight / naturalHeight);
           }
         }
-        // console.log('!!! scale', naturalWidth, naturalHeight, orientation, aspectRatio, scaledWidth, scaledHeight);
 
         const context = canvas.getContext('2d');
         // when receiving a photo from a camera or the Photos app, it hasn't been
@@ -108,10 +107,6 @@ const AddPhoto = ({ event, onAdding, onAdd }) => {
           canvas.height = scaledHeight;
           context.drawImage(img, 0, 0, scaledWidth, scaledHeight);
         }
-        // for debugging:
-        // canvas.style.cssText = `position:absolute;top:0;left:0;transform:scale(1.0);z-index:100;border:5px solid red;width: ${scaledWidth};height: ${scaledHeight}`;
-        // document.body.appendChild(canvas);
-        // alert(`${naturalWidth}x${naturalHeight} ${orientation} ${aspectRatio} ${scaledWidth}x${scaledHeight}`);
 
         canvas.toBlob((blob) => {
           const formData = new FormData();
