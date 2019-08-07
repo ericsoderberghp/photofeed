@@ -3,7 +3,7 @@ import { Box, Button, Carousel, Keyboard, Stack } from 'grommet';
 import { Play, Pause } from 'grommet-icons';
 import Photo from './Photo';
 
-const Player = ({ event, photos, onDone }) => {
+const Player = ({ event, photos, effects, onDone }) => {
   const [play, setPlay] = React.useState();
   const [showControls, setShowControls] = React.useState(true);
 
@@ -45,6 +45,7 @@ const Player = ({ event, photos, onDone }) => {
               <Photo
                 key={photo.id || photo.name}
                 fill
+                effects={effects}
                 photo={photo}
                 event={event}
               />

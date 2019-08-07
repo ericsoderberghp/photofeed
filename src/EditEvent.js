@@ -31,7 +31,7 @@ const EditEvent = ({ id, push }) => {
       <Header margin={undefined}>
         <RoutedButton path="/events" icon={<Previous />} hoverIndicator />
         <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
-        <Box pad="large" />
+        <Box pad="medium" />
       </Header>
       {!event ? <Loading Icon={Calendar} /> : (
         <Box

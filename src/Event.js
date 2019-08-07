@@ -1,13 +1,12 @@
-import React from 'react';
-import { Box, Button, Heading, Keyboard } from 'grommet';
-import { Calendar, Image, Share } from 'grommet-icons';
+import React, { Fragment } from 'react';
+import { Box, Button, Heading } from 'grommet';
+import { Image, Share } from 'grommet-icons';
 import Loading from './Loading';
 import Header from './Header';
 import SessionContext from './SessionContext';
 import RoutedButton from './RoutedButton';
-import Photos from './Photos';
 import AddPhoto from './AddPhoto';
-import Player from './Player';
+import Photos from './Photos';
 import { apiUrl } from './utils';
 
 const Event = ({ token }) => {
@@ -15,9 +14,6 @@ const Event = ({ token }) => {
   const [event, setEvent] = React.useState();
   const [photos, setPhotos] = React.useState();
   const [adding, setAdding] = React.useState();
-  const [refreshing, setRefreshing] = React.useState();
-  const [play, setPlay] = React.useState();
-  const [blackAndWhite, setBlackAndWhite] = React.useState();
 
   const load = () => {
     fetch(`${apiUrl}/events?token=${token}`, 
@@ -35,120 +31,66 @@ const Event = ({ token }) => {
             : undefined),
         )
           .then(response => response.json())
-          .then(setPhotos)
-          .then(() => setRefreshing(false));
+          .then(setPhotos);
       });
   }
 
   React.useEffect(load, [token, session]);
 
-  React.useEffect(() => {
-    let scrollTimer;
-
-    const onScroll = () => {
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(() => {
-        if (window.scrollY < 0) {
-          // user is holding the scroll position down, refresh
-          setRefreshing(true);
-          load();
-        }
-      }, 500);
-    }
-
-    document.addEventListener('scroll', onScroll);
-    return () => document.removeEventListener('scroll', onScroll);
-  });
-
-  React.useEffect(() => {
-    const onTouchStart = (event) => {
-      if (event.touches.length === 3) {
-        setPlay(true);
-      }
-    }
-
-    document.addEventListener('touchstart', onTouchStart);
-    return () => document.removeEventListener('touchstart', onTouchStart);
-  }, [play]);
-
-  if (play) {
-    return (
-      <Player
-        event={event}
-        photos={photos}
-        blackAndWhite={blackAndWhite}
-        onDone={() => setPlay(false)}
-      />
-    );
-  }
-
-  const onKeyDown = (event) => {
-    if (event.key === 'p') {
-      setPlay(true);
-    } else if (event.key === 'b') {
-      setBlackAndWhite(!blackAndWhite);
-    }
-  }
-
   const canAdd = event && (!event.locked
     || (session && (session.admin || session.userId === event.userId)));
 
   return (
-    <Keyboard target="document" onKeyDown={onKeyDown}>
-      <Box
-        background={refreshing ? 'accent-1' : 'dark-1'}
-        style={{ minHeight: '100vh' }}
-      >
-        <Header
-          overflow="hidden"
-          margin={undefined}
-          background={{ color: 'dark-1', opacity: 'medium' }}
-          style={{ position: 'absolute', top: 0, width: '100vw', zIndex: 10 }}
-        >
-          {(session && session.admin)
-            ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
-            : (navigator.share ? (
-              <Button
-                icon={<Share />}
-                hoverIndicator
-                onClick={() => navigator.share({
-                  title: event.name,
-                  text: event.name,
-                  url: `/events/${encodeURIComponent(event.token)}`,
-                })}
-              />
-            ) : <Box pad="large" />)
-          }
-          <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
-          {canAdd ? (
-            <AddPhoto
-              session={session}
-              event={event}
-              onAdding={setAdding}
-              onAdd={(photo) => setPhotos([ photo, ...photos ])}
-            />
-          ) : <Box pad="large" />}
-        </Header>
-        {adding && (
-          <Box
-            basis="medium"
-            background={{ color: 'light-2', opacity: 'medium' }}
-            align="center"
-            justify="center"
+    <Photos
+      event={event}
+      photos={photos}
+      onRefresh={load}
+      onDelete={(photo) => setPhotos(photos.filter(p => p.id !== photo.id))}
+      header={(
+        <Fragment>
+          <Header
+            overflow="hidden"
+            margin={undefined}
+            background={{ color: 'dark-1', opacity: 'medium' }}
+            style={{ position: 'absolute', top: 0, width: '100vw', zIndex: 10 }}
           >
-            <Loading Icon={Image} />
-          </Box>
-        )}
-        {!photos ? <Loading Icon={Calendar} /> : (
-          <Photos
-            event={event}
-            photos={photos}
-            blackAndWhite={blackAndWhite}
-            onDelete={(photo) => setPhotos(photos.filter(p => p.id !== photo.id))}
-          />
-        )}
-      </Box>
-    </Keyboard>
+            {(session && session.admin)
+              ? <RoutedButton path="/events" icon={<Image />} hoverIndicator />
+              : (navigator.share ? (
+                <Button
+                  icon={<Share />}
+                  hoverIndicator
+                  onClick={() => navigator.share({
+                    title: event.name,
+                    text: event.name,
+                    url: `/events/${encodeURIComponent(event.token)}`,
+                  })}
+                />
+              ) : <Box pad="large" />)
+            }
+            <Heading size="small" margin="none">{event ? event.name : ''}</Heading>
+            {canAdd ? (
+              <AddPhoto
+                session={session}
+                event={event}
+                onAdding={setAdding}
+                onAdd={(photo) => setPhotos([ photo, ...photos ])}
+              />
+            ) : <Box pad="large" />}
+          </Header>
+          {adding && (
+            <Box
+              basis="medium"
+              background={{ color: 'light-2', opacity: 'medium' }}
+              align="center"
+              justify="center"
+            >
+              <Loading Icon={Image} />
+            </Box>
+          )}
+        </Fragment>
+      )}
+    />
   );
 }
 

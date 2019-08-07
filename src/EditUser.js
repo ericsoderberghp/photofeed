@@ -31,7 +31,7 @@ const EditUser = ({ id, push }) => {
       <Header margin={undefined}>
         <RoutedButton path="/users" icon={<Previous />} hoverIndicator />
         <Heading size="small" margin="none">{user ? user.name : ''}</Heading>
-        <Box pad="large" />
+        <Box pad="medium" />
       </Header>
       {!user ? <Loading Icon={UserIcon} /> : (
         <Box

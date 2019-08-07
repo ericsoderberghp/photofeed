@@ -32,7 +32,7 @@ const Users = () => {
       <Header>
         <RoutedButton path="/events" icon={<Previous />} hoverIndicator />
         <Heading size="small" margin="none">Users</Heading>
-        <Box pad="large" />
+        <Box pad="medium" />
       </Header>
       {!users ? <Loading Icon={Group} /> : (
         <Box>

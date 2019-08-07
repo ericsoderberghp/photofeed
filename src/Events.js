@@ -31,7 +31,7 @@ const Events = () => {
       <Header>
         <RoutedButton path="/" icon={<Previous />} hoverIndicator />
         <Heading size="small" margin="none">Events</Heading>
-        <Box pad="large" />
+        <Box pad="medium" />
       </Header>
 
       {!events ? <Loading Icon={Calendar} /> : (

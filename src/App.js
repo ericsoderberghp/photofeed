@@ -5,7 +5,7 @@ import { Router, Route, Routes } from './Router';
 import SessionContext from './SessionContext';
 import Splash from './Splash';
 import Start from './Start';
-import Feed from './Feed';
+import Aggregate from './Aggregate';
 import Events from './Events';
 import Users from './Users';
 import Join from './Join';
@@ -44,7 +44,7 @@ function App() {
           <SessionContext.Provider value={session}>
             <Routes notFoundRedirect="/">
               {session && [
-                <Route key="/" exact path="/" component={Feed} />,
+                <Route key="/" exact path="/" component={Aggregate} />,
                 <Route key="/events" exact path="/events" component={Events} />,
                 <Route key="/events/edit" path="/events/edit/:id" component={EditEvent} />,
                 <Route key="/users" exact path="/users" component={Users} />,
