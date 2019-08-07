@@ -1,7 +1,5 @@
 import React from 'react';
-import { Box, Heading } from 'grommet';
 import { Image } from 'grommet-icons';
-import Header from './Header';
 import SessionContext from './SessionContext';
 import RoutedButton from './RoutedButton';
 import Photos from './Photos';
@@ -29,18 +27,11 @@ const Aggregate = () => {
 
   return (
     <Photos
+      name="Photo Feed"
       photos={photos}
       onRefresh={load}
-      header={(
-        <Header
-          margin={undefined}
-          background={{ color: 'dark-1', opacity: 'medium' }}
-          style={{ position: 'absolute', top: 0, width: '100vw', zIndex: 10 }}
-        >
-          <RoutedButton path="/events" icon={<Image />} hoverIndicator />
-          <Heading size="small" margin="none">Photo Feed</Heading>
-          <Box pad="medium" />
-        </Header>
+      leftControl={(
+        <RoutedButton path="/events" icon={<Image />} hoverIndicator />
       )}
     />
   );

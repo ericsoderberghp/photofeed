@@ -1,12 +1,15 @@
 import React from 'react';
-import { Box, Grid, Keyboard, Paragraph, ResponsiveContext } from 'grommet';
+import { Box, Grid, Heading, Keyboard, Paragraph, ResponsiveContext } from 'grommet';
 import { Calendar } from 'grommet-icons';
 import Loading from './Loading';
+import Header from './Header';
 import Player from './Player';
 import Photo from './Photo';
 
-const Photos = ({ header, event, photos, onRefresh, onDelete }) => {
-  const [refreshing, setRefreshing] = React.useState();
+const Photos = ({
+  name, leftControl, rightControl, insert, event, photos, onRefresh, onDelete,
+}) => {
+  const [refreshing, setRefreshing] = React.useState(photos);
   const [play, setPlay] = React.useState();
   const [effects, setEffects] = React.useState({});
 
@@ -27,6 +30,9 @@ const Photos = ({ header, event, photos, onRefresh, onDelete }) => {
     document.addEventListener('scroll', onScroll);
     return () => document.removeEventListener('scroll', onScroll);
   });
+
+  // Clear refreshing if we get new photos
+  React.useEffect(() => setRefreshing(false), [photos]);
 
   // TODO: change this mechanism
   React.useEffect(() => {
@@ -53,11 +59,22 @@ const Photos = ({ header, event, photos, onRefresh, onDelete }) => {
   } else {
     content = (
       <Box
-        background={refreshing ? 'accent-1' : 'dark-1'}
+        background={'dark-1'}
         style={{ minHeight: '100vh' }}
       >
-        {header}
-        {!photos ? <Loading Icon={Calendar} /> : (
+        <Header
+          overflow="hidden"
+          margin={undefined}
+          background={{ color: 'dark-1', opacity: 'medium' }}
+          style={{ position: 'absolute', top: 0, width: '100vw', zIndex: 10 }}
+        >
+          {leftControl || <Box pad="medium" />}
+          <Heading size="small" margin="none">{name}</Heading>
+          {rightControl || <Box pad="medium" />}
+        </Header>
+        {refreshing && <Box background="accent-1" pad="large" />}
+        {insert}
+        {!photos ? <Box margin="xlarge"><Loading Icon={Calendar} /></Box> : (
           <ResponsiveContext.Consumer>
             {(responsive) => (
               <Box flex={false}>
