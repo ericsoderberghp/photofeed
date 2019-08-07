@@ -5,8 +5,21 @@ import {
 import { Add } from 'grommet-icons';
 import EXIF from 'exif-js';
 import SessionContext from './SessionContext';
+import { apiUrl } from './utils';
 
-const AddPhoto = ({ event, onAdd }) => {
+const resolution = 1080;
+
+// map of EXIF orientation value to image rotation angle
+const orientationRotation = {
+  3: 180,
+  4: 180,
+  5: 270,
+  6: 90,
+  7: 90,
+  8: 270,
+};
+
+const AddPhoto = ({ event, onAdding, onAdd }) => {
   const session = React.useContext(SessionContext);
   const [naming, setNaming] = React.useState();
   const [userName, setUserName] = React.useState();
@@ -22,6 +35,7 @@ const AddPhoto = ({ event, onAdd }) => {
   }, [session]);
 
   const addPhoto = (file) => {
+    onAdding(true);
     const photo = {
       name: file.name,
       type: file.type,
@@ -34,19 +48,95 @@ const AddPhoto = ({ event, onAdd }) => {
       photo.userName = userName;
       photo.eventToken = event.token;
     }
+    let orientation;
+
     // read EXIF data
     EXIF.getData(file, function () {
-      const orientation = EXIF.getTag(file, "Orientation");
-      if (orientation) {
-        photo.orientation = orientation;
-      }
+      orientation = EXIF.getTag(file, "Orientation");
     });
-    // make it a dataURL so Photo can render it and then scale it
+
+    // read file, load into an img, scale and rotate in a canvas
     const reader = new FileReader();
     reader.onload = (event2) => {
-      photo.src = event2.target.result;
-      onAdd(photo);
+      const img = document.createElement('img');
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const naturalWidth = img.naturalWidth;
+        const naturalHeight = img.naturalHeight;
+        let aspectRatio = naturalWidth / naturalHeight;
+
+        let scaledWidth;
+        let scaledHeight;
+        if (aspectRatio < 1) { // portrait
+          if (naturalWidth < resolution) {
+            scaledWidth = naturalWidth;
+            scaledHeight = naturalHeight;
+          } else {
+            scaledWidth = resolution;
+            scaledHeight = naturalHeight * (scaledWidth / naturalWidth);
+          }
+        } else {
+          if (naturalHeight < resolution) {
+            scaledWidth = naturalWidth;
+            scaledHeight = naturalHeight;
+          } else {
+            scaledHeight = resolution;
+            scaledWidth = naturalWidth * (scaledHeight / naturalHeight);
+          }
+        }
+        // console.log('!!! scale', naturalWidth, naturalHeight, orientation, aspectRatio, scaledWidth, scaledHeight);
+
+        const context = canvas.getContext('2d');
+        // when receiving a photo from a camera or the Photos app, it hasn't been
+        // "exported" and has it's orientation encoded in EXIF. If we detect
+        // this situation, handle the rotation in the way we draw to the canvas.
+        if (orientation >= 3) {
+          if (orientation >= 5) { // 90deg or 270deg
+            canvas.width = scaledHeight;
+            canvas.height = scaledWidth;
+            aspectRatio = 1 / aspectRatio;
+          } else { // 180deg
+            canvas.width = scaledWidth;
+            canvas.height = scaledHeight;
+          }
+          context.translate(canvas.width/2, canvas.height/2);
+          context.rotate(orientationRotation[orientation] * Math.PI / 180);
+          context.drawImage(img, -scaledWidth/2, -scaledHeight/2, scaledWidth, scaledHeight);
+        } else {
+          canvas.width = scaledWidth;
+          canvas.height = scaledHeight;
+          context.drawImage(img, 0, 0, scaledWidth, scaledHeight);
+        }
+        // for debugging:
+        // canvas.style.cssText = `position:absolute;top:0;left:0;transform:scale(1.0);z-index:100;border:5px solid red;width: ${scaledWidth};height: ${scaledHeight}`;
+        // document.body.appendChild(canvas);
+        // alert(`${naturalWidth}x${naturalHeight} ${orientation} ${aspectRatio} ${scaledWidth}x${scaledHeight}`);
+
+        canvas.toBlob((blob) => {
+          const formData = new FormData();
+          const savePhoto = { ...photo, aspectRatio };
+          delete savePhoto.src;
+          formData.append('photo', JSON.stringify(savePhoto));
+          formData.append('file', blob);
+          fetch(`${apiUrl}/photos`, {
+            method: 'POST',
+            headers: {
+              'Authorization': session ? `Bearer ${session.token}` : '',
+            },
+            body: formData,
+          })
+            .then(response => response.json())
+            .then((photo) => {
+              onAdding(false);
+              onAdd(photo);
+            });
+        }, photo.type);
+      }
+
+      img.src = event2.target.result;
     }
+
     reader.readAsDataURL(file);
   }
 

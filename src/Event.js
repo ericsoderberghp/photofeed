@@ -14,6 +14,7 @@ const Event = ({ token }) => {
   const session = React.useContext(SessionContext);
   const [event, setEvent] = React.useState();
   const [photos, setPhotos] = React.useState();
+  const [adding, setAdding] = React.useState();
   const [refreshing, setRefreshing] = React.useState();
   const [play, setPlay] = React.useState();
 
@@ -113,6 +114,7 @@ const Event = ({ token }) => {
             <AddPhoto
               session={session}
               event={event}
+              onAdding={setAdding}
               onAdd={(photo) => {
                 // our proto-photo still needs to be scaled by Photo
                 setPhotos([ photo, ...photos ]);
@@ -120,6 +122,16 @@ const Event = ({ token }) => {
             />
           ) : <Box pad="large" />}
         </Header>
+        {adding && (
+          <Box
+            basis="medium"
+            background={{ color: 'light-2', opacity: 'medium' }}
+            align="center"
+            justify="center"
+          >
+            <Loading Icon={Image} />
+          </Box>
+        )}
         {!photos ? <Loading Icon={Calendar} /> : (
           <Photos
             event={event}
