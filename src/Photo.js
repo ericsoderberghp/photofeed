@@ -7,7 +7,7 @@ import { apiUrl } from './utils';
 
 const resolution = 1080;
 
-const Photo = ({ event, photo, push, fill, onDelete }) => {
+const Photo = ({ event, photo, push, fill, blackAndWhite, onDelete }) => {
   const session = React.useContext(SessionContext);
   const [confirmDelete, setConfirmDelete] = React.useState();
   const [deleting, setDeleting] = React.useState();
@@ -37,7 +37,11 @@ const Photo = ({ event, photo, push, fill, onDelete }) => {
       onClick={!event ? () => push(`/events/${photo.eventToken}#${photo.id}`) : undefined}
     >
       <Anchor name={photo.id} />
-      <Image fit="contain" src={photo.src} />
+      <Image
+        fit="contain"
+        src={photo.src}
+        style={blackAndWhite ? { filter: 'grayscale(100%) contrast(1.1)' } : undefined}
+      />
     </Box>
   );
 

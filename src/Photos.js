@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Paragraph, ResponsiveContext } from 'grommet';
 import Photo from './Photo';
 
-const Photos = ({ event, photos, onDelete }) => {
+const Photos = ({ event, photos, blackAndWhite, onDelete }) => {
   return (
     <ResponsiveContext.Consumer>
       {(responsive) => (
@@ -14,6 +14,7 @@ const Photos = ({ event, photos, onDelete }) => {
                   fill="horizontal"
                   photo={photo}
                   event={event}
+                  blackAndWhite={blackAndWhite}
                   onDelete={onDelete}
                 />
             )) : (
@@ -23,6 +24,7 @@ const Photos = ({ event, photos, onDelete }) => {
                     key={photo.id || photo.name}
                     photo={photo}
                     event={event}
+                    blackAndWhite={blackAndWhite}
                     onDelete={onDelete}
                   />
                 ))}
@@ -31,7 +33,7 @@ const Photos = ({ event, photos, onDelete }) => {
           }
           {!photos.length && (
             <Box basis="medium" align="center" justify="center">
-              <Paragraph>We need you to add some photos!</Paragraph>
+              <Paragraph>You should add some photos!</Paragraph>
             </Box>
           )}
         </Box>

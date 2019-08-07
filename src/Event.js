@@ -17,6 +17,7 @@ const Event = ({ token }) => {
   const [adding, setAdding] = React.useState();
   const [refreshing, setRefreshing] = React.useState();
   const [play, setPlay] = React.useState();
+  const [blackAndWhite, setBlackAndWhite] = React.useState();
 
   const load = () => {
     fetch(`${apiUrl}/events?token=${token}`, 
@@ -71,12 +72,21 @@ const Event = ({ token }) => {
   }, [play]);
 
   if (play) {
-    return <Player event={event} photos={photos} onDone={() => setPlay(false)} />;
+    return (
+      <Player
+        event={event}
+        photos={photos}
+        blackAndWhite={blackAndWhite}
+        onDone={() => setPlay(false)}
+      />
+    );
   }
 
   const onKeyDown = (event) => {
     if (event.key === 'p') {
       setPlay(true);
+    } else if (event.key === 'b') {
+      setBlackAndWhite(!blackAndWhite);
     }
   }
 
@@ -115,10 +125,7 @@ const Event = ({ token }) => {
               session={session}
               event={event}
               onAdding={setAdding}
-              onAdd={(photo) => {
-                // our proto-photo still needs to be scaled by Photo
-                setPhotos([ photo, ...photos ]);
-              }}
+              onAdd={(photo) => setPhotos([ photo, ...photos ])}
             />
           ) : <Box pad="large" />}
         </Header>
@@ -136,6 +143,7 @@ const Event = ({ token }) => {
           <Photos
             event={event}
             photos={photos}
+            blackAndWhite={blackAndWhite}
             onDelete={(photo) => setPhotos(photos.filter(p => p.id !== photo.id))}
           />
         )}
