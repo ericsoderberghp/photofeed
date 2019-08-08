@@ -9,6 +9,7 @@ const Start = ({ onSession }) => {
   return (
     <Box
       fill
+      align="center"
       style={{
         minHeight: '100vh',
         backgroundImage: 'url(/background-tile.svg)',
