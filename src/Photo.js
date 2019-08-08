@@ -30,7 +30,7 @@ const Photo = ({
       width = `${(resolution / 2) * (photo.aspectRatio)}px`;
     }
   } else { // fill
-    // height = '100%';
+    height = '100%';
     width = '100%';
   }
 
@@ -67,8 +67,8 @@ const Photo = ({
 
   if (onDelete) {
     content = (
-      <Box flex={false} animation={{ type: 'fadeIn', delay: index * 100 }}>
-        <Stack anchor="bottom-right">
+      <Box animation={{ type: 'fadeIn', delay: index * 100 }}>
+        <Stack fill={fill} anchor="bottom-right">
           {content}
           {deleting && (
             <Box

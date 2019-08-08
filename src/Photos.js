@@ -128,7 +128,6 @@ const Photos = ({
                           index={index}
                           event={event}
                           fill
-                          random={true}
                           effects={effects}
                           onDelete={onDelete}
                         />
