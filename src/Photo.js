@@ -19,6 +19,7 @@ const Photo = ({
   const [deleted, setDeleted] = React.useState();
   const [ignoreDrag, setIgnoreDrag] = React.useState();
   let touchStartX;
+  let touchStartY;
 
   React.useEffect(() => {
     const stored = localStorage.getItem('eventUser');
@@ -119,30 +120,35 @@ const Photo = ({
       animation={{ type: 'fadeIn', delay: index * 100 }}
       onTouchStart={(event) => {
         if (event.touches.length === 1) {
-          touchStartX = event.touches[0].pageX;
+          touchStartX = event.touches[0].clientX;
+          touchStartY = event.touches[0].clientY;
         }
       }}
       onTouchMove={(event) => {
         if (event.touches.length === 1) {
-          const delta = event.touches[0].pageX - touchStartX;
-          if (delta) {
-            event.preventDefault();
-          }
+          event.preventDefault();
           if (!ignoreDrag) {
-            if (!detail && delta < -50) {
+            const deltaX = event.touches[0].clientX - touchStartX;
+            const deltaY = Math.abs(event.touches[0].clientY - touchStartY);
+            if (!detail && deltaX < -100 && deltaY < 40) {
               setIgnoreDrag(true);
               setDetail(true);
-              setTimeout(() => setIgnoreDrag(false), 200);
-            } else if (detail && delta > 50) {
+            } else if (detail && deltaX > 100 && deltaY < 40) {
               setIgnoreDrag(true);
               setDetail(false);
-              setTimeout(() => setIgnoreDrag(false), 200);
             }
           }
         }
       }}
-      onTouchCancel={() => {
+      onTouchEnd={(event) => {
+        setIgnoreDrag(false);
         touchStartX = undefined;
+        touchStartY = undefined;
+      }}
+      onTouchCancel={() => {
+        setIgnoreDrag(false);
+        touchStartX = undefined;
+        touchStartY = undefined;
       }}
       onWheel={(event) => {
         if (event.deltaX) {
