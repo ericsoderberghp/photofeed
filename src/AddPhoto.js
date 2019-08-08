@@ -178,6 +178,7 @@ const AddPhoto = ({ event, onAdd }) => {
         {naming && (
           <Layer
             plain
+            modal
             position="top"
             onEsc={() => setNaming(false)}
             onClickOutside={() => setNaming(false)}

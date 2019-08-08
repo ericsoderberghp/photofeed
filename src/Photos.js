@@ -149,12 +149,14 @@ const Photos = ({
   }
 
   const onKeyDown = (event) => {
-    if (event.key === 'p') {
-      setPlay(true);
-    } else if (event.key === 'b') {
-      setEffects({ ...effects, blackAndWhite: !effects.blackAndWhite });
-    } else if (event.key === 't') {
-      setEffects({ ...effects, toss: !effects.toss });
+    if (event.ctrlKey) {
+      if (event.key === 'p') {
+        setPlay(true);
+      } else if (event.key === 'b') {
+        setEffects({ ...effects, blackAndWhite: !effects.blackAndWhite });
+      } else if (event.key === 't') {
+        setEffects({ ...effects, toss: !effects.toss });
+      }
     }
   }
 
