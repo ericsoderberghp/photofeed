@@ -3,6 +3,7 @@ import {
   Box, Button, Form, FormField, Layer, Meter, Paragraph, Stack, Text, TextInput,
 } from 'grommet';
 import { Add } from 'grommet-icons';
+import styled, { keyframes } from 'styled-components';
 import EXIF from 'exif-js';
 import SessionContext from './SessionContext';
 import { apiUrl } from './utils';
@@ -18,6 +19,14 @@ const orientationRotation = {
   7: 90,
   8: 270,
 };
+
+const SpinningMeter = styled(Meter)`
+  animation: ${keyframes`from { 
+    transform: rotate(0deg); 
+} to { 
+    transform: rotate(360deg); 
+}`} 3s infinite;
+`;
 
 const AddPhoto = ({ event, onAdd }) => {
   const session = React.useContext(SessionContext);
@@ -62,6 +71,7 @@ const AddPhoto = ({ event, onAdd }) => {
       const img = document.createElement('img');
 
       img.onload = () => {
+        setAdding(prevAdding => prevAdding - 1);
         const canvas = document.createElement('canvas');
         const naturalWidth = img.naturalWidth;
         const naturalHeight = img.naturalHeight;
@@ -149,8 +159,8 @@ const AddPhoto = ({ event, onAdd }) => {
         onChange={(event) => {
           const files = event.target.files;
           if (files) {
-            setAdding(files.length);
-            setTotal(files.length);
+            setAdding(files.length * 2);
+            setTotal(files.length * 2);
             for (let i=0; i<files.length; i++) {
               addPhoto(files[i]);
             }
@@ -203,21 +213,22 @@ const AddPhoto = ({ event, onAdd }) => {
         )}
       </Box>
       {adding ? (
-        <Stack anchor="center">
-          <Meter
-            type="circle"
-            size="xxsmall"
-            thickness="xsmall"
-            max={total}
-            values={[{ value: total - adding }]}
-          />
-          <Text
-            weight="bold"
-            style={{ display: 'block', marginTop: '-8px' }}
-          >
-            {adding}
-          </Text>
-        </Stack>
+        <Box pad="small">
+          <Stack anchor="center">
+            <SpinningMeter
+              type="circle"
+              size="full"
+              max={total}
+              values={[{ value: total - adding }]}
+            />
+            <Text
+              weight="bold"
+              style={{ display: 'block', marginTop: '-8px' }}
+            >
+              {Math.ceil(adding / 2)}
+            </Text>
+          </Stack>
+        </Box>
       ) : null}
     </Stack>
   );
