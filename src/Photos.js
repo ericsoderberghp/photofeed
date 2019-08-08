@@ -71,6 +71,7 @@ const Photos = ({
         >
           {leftControl || <Box pad="medium" />}
           <DropButton
+            hoverIndicator
             dropTarget={headerRef.current}
             dropAlign={{ top: 'bottom' }}
             dropProps={{ plain: true, stretch: false }}
@@ -93,7 +94,12 @@ const Photos = ({
               </Box>
             )}
           >
-            <Heading size="small" margin="none">{name}</Heading>
+            <Heading
+              size="small"
+              margin={{ horizontal: 'medium', vertical: 'xxsmall' }}
+            >
+              {name}
+            </Heading>
           </DropButton>
           {rightControl || <Box pad="medium" />}
         </Header>
