@@ -68,7 +68,8 @@ const authorizedToPost = (req, res, photo) => getSession(req)
             res.status(403).send('event is locked');
             throw new Error('event is locked');
           }
-        });
+        })
+        .then(() => session);
     }
     return db.collection('events').doc(eventId).get()
       .then(eventSnap => {
@@ -82,6 +83,7 @@ const authorizedToPost = (req, res, photo) => getSession(req)
           throw new Error('not event owner or admin');
         }
       })
+      .then(() => session);
   });
 
 /**
@@ -173,6 +175,14 @@ exports.photos = (req, res) => {
           if (userName) savePhoto.userName = userName;
 
           pending.push(authorizedToPost(req, res, photo)
+            // get user.name if no userName
+            .then((session) => {
+              if (!userName) {
+                return db.collection('users').doc(session.userId).get()
+                  .then((userSnap) =>
+                    (savePhoto.userName = userSnap.data().name))
+              }
+            })
             // add photo            
             .then(() => db.collection('photos').add(savePhoto))
             .then(photoRef => photoRef.get())
