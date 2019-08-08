@@ -31,16 +31,16 @@ const SpinningMeter = styled(Meter)`
 const AddPhoto = ({ event, onAdd }) => {
   const session = React.useContext(SessionContext);
   const [naming, setNaming] = React.useState();
-  const [userName, setUserName] = React.useState();
+  const [eventUser, setEventUser] = React.useState();
   const [adding, setAdding] = React.useState(0);
   const [total, setTotal] = React.useState(0);
   const inputRef = React.useRef();
 
   React.useEffect(() => {
     if (!session) {
-      const stored = localStorage.getItem('userName');
+      const stored = localStorage.getItem('eventUser');
       if (stored) {
-        setUserName(stored);
+        setEventUser(JSON.parse(stored));
       }
     }
   }, [session]);
@@ -54,8 +54,9 @@ const AddPhoto = ({ event, onAdd }) => {
     };
     if (session) {
       photo.userId = session.userId;
-    } else if (userName) {
-      photo.userName = userName;
+    } else if (eventUser) {
+      photo.eventUserName = eventUser.name;
+      photo.eventUserToken = eventUser.token;
       photo.eventToken = event.token;
     }
     let orientation;
@@ -149,7 +150,7 @@ const AddPhoto = ({ event, onAdd }) => {
   return (
     <Stack
       guidingChild={1}
-      interactiveChild={(userName || session) ? 'first' : 1}
+      interactiveChild={(eventUser || session) ? 'first' : 1}
     >
       <TextInput
         ref={inputRef}
@@ -191,8 +192,12 @@ const AddPhoto = ({ event, onAdd }) => {
               <Form
                 value={{ name: '' }}
                 onSubmit={({ value: { name }}) => {
-                  localStorage.setItem('userName', name);
-                  setUserName(name);
+                  const array = crypto.getRandomValues(new Uint16Array(16));
+                  const token = Array.from(array, (byte) =>
+                    ('0' + (byte & 0xFF).toString(16)).slice(-2)).join('');
+                  const eventUser = { name, token };
+                  localStorage.setItem('eventUser', JSON.stringify(eventUser));
+                  setEventUser(eventUser);
                   setNaming(false);
                   inputRef.current.click();
                 }}

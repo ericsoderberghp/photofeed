@@ -7,7 +7,7 @@ const storage = new Storage();
 const bucketName = 'photofeed-photos';
 const bucket = storage.bucket(bucketName);
 
-const authorize = (req, res, admin = true) => {
+const authorize = (req, res, admin = true, anonymous = false) => {
   const auth = req.get('Authorization');
   if (!auth) {
     res.status(403).send('missing Authorization');
@@ -22,8 +22,11 @@ const authorize = (req, res, admin = true) => {
     .where('token', '==', token).get()
     .then((querySnap) => {
       if (querySnap.empty) {
-        res.status(403).send('no session');
-        throw new Error('no session');
+        if (!anonymous) {
+          res.status(403).send('no session');
+          throw new Error('no session');
+        }
+        return token; // caller might want to match to eventUserToken
       }
       const session = querySnap.docs[0].data();
       if (admin && !session.admin) {
@@ -165,19 +168,21 @@ exports.photos = (req, res) => {
         if (fieldname === 'photo') {
           photo = JSON.parse(val);
           const {
-            name, type, date, aspectRatio, userId, eventId, userName,
+            name, type, date, aspectRatio, userId, eventId,
+            eventUserName, eventUserToken,
           } = photo;
           const savePhoto = {
             name, type, date, aspectRatio, eventId,
             created: (new Date()).toISOString(),
           };
           if (userId) savePhoto.userId = userId;
-          if (userName) savePhoto.userName = userName;
+          if (eventUserName) savePhoto.eventUserName = eventUserName;
+          if (eventUserToken) savePhoto.eventUserToken = eventUserToken;
 
           pending.push(authorizedToPost(req, res, photo)
             // get user.name if no userName
             .then((session) => {
-              if (!userName) {
+              if (!eventUserName) {
                 return db.collection('users').doc(session.userId).get()
                   .then((userSnap) =>
                     (savePhoto.userName = userSnap.data().name))
@@ -228,8 +233,8 @@ exports.photos = (req, res) => {
   if (req.method === 'DELETE') {
     const id = decodeURIComponent(req.path.split('/')[1]);
     // get session, TODO: don't require admin to be able to delete
-    return authorize(req, res)
-      .then(session =>
+    return authorize(req, res, false, true)
+      .then(sessionOrToken =>
         // get photo
         db.collection('photos').doc(id).get()
           .then((photoSnap) => {
@@ -239,17 +244,27 @@ exports.photos = (req, res) => {
               .then((eventSnap) => {
                 const event = eventSnap.data();
                 // authorize
-                if (!session.admin && event.userId !== session.userId
-                  && photo.userId !== session.userId) {
-                  res.status(403).send();
-                  throw new Error(`user ${session.userId} cannot delete this photo`);
+                if (sessionOrToken &&
+                  ((typeof sessionOrToken === 'object' && (
+                    sessionOrToken.admin
+                    || event.userId === sessionOrToken.userId
+                    || photo.userId === sessionOrToken.userId
+                  )) || (
+                    photo.eventUserToken &&
+                    (sessionOrToken === photo.eventUserToken)
+                  ))) {
+                  const parts = photo.src.split('/');
+                  const bucketFileName = parts[parts.length - 1];
+                  // delete src file
+                  return bucket.file(bucketFileName).delete()
+                    // delete photo object
+                    .then(() => photoSnap.ref.delete());
                 }
-                const parts = photo.src.split('/');
-                const bucketFileName = parts[parts.length - 1];
-                // delete src file
-                return bucket.file(bucketFileName).delete()
-                  // delete photo object
-                  .then(() => photoSnap.ref.delete());
+
+                res.status(403).send();
+                throw new Error(`user ${
+                  sessionOrToken.userId || sessionOrToken
+                } cannot delete this photo`);
               });
             })
       )

@@ -9,15 +9,23 @@ import { apiUrl } from './utils';
 const resolution = 1080;
 
 const Photo = ({
-  event, photo, index, push, fill, effects, random, onDelete,
+  event, photo, index, push, fill, effects, onDelete,
  }) => {
   const session = React.useContext(SessionContext);
   const [detail, setDetail] = React.useState();
+  const [eventUser, setEventUser] = React.useState();
   const [confirmDelete, setConfirmDelete] = React.useState();
   const [deleting, setDeleting] = React.useState();
   const [deleted, setDeleted] = React.useState();
   const [ignoreDrag, setIgnoreDrag] = React.useState();
   let touchStartX;
+
+  React.useEffect(() => {
+    const stored = localStorage.getItem('eventUser');
+    if (stored) {
+      setEventUser(JSON.parse(stored));
+    }
+  }, [])
 
   React.useEffect(() => {
     const onScroll = (event) => {
@@ -36,7 +44,7 @@ const Photo = ({
     fetch(`${apiUrl}/photos/${photo.id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${session.token}`,
+        'Authorization': `Bearer ${session ? session.token : eventUser.token}`,
       },
     })
       .then(() => setConfirmDelete(undefined))
@@ -46,7 +54,8 @@ const Photo = ({
   }
 
   let deleteControls;
-  if (session && (session.admin || session.userId === event.userId)) {
+  if ((session && (session.admin || session.userId === event.userId))
+    || (eventUser && eventUser.token === photo.eventUserToken)) {
     deleteControls = (
       <Box direction="row" margin={{ top: 'medium' }}>
         {confirmDelete && !deleting && (
