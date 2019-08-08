@@ -12,6 +12,19 @@ const Event = ({ token }) => {
   const [event, setEvent] = React.useState();
   const [photos, setPhotos] = React.useState();
 
+  const updateManifest = (event) => {
+    // replace manifest in page head
+    const manifest = document.getElementById('manifest');
+    const nextManifest = document.createElement('link');
+    nextManifest.id = 'manifest';
+    nextManifest.rel = 'manifest';
+    nextManifest.href =
+      `https://us-central1-photofeed-248603.cloudfunctions.net/manifest?startUrl=${
+        encodeURIComponent(`/events/${token}`)
+      }&name=${encodeURIComponent(event.name)}`;
+    manifest.parentNode.replaceChild(nextManifest, manifest);
+  };
+
   const load = () => {
     fetch(`${apiUrl}/events?token=${token}`, 
       (session
@@ -22,6 +35,7 @@ const Event = ({ token }) => {
       .then((event) => {
         document.title = `${event.name} - Photo Feed`;
         setEvent(event);
+        updateManifest(event);
         fetch(`${apiUrl}/photos?eventId=${event.id}`, 
           (session
             ? { headers: { 'Authorization': `Bearer ${session.token}` } }
