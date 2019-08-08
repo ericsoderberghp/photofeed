@@ -224,15 +224,18 @@ const AddPhoto = ({ event, onAdd }) => {
             <SpinningMeter
               type="circle"
               size="full"
+              thickness={total > 2 ? 'large' : 'xlarge'}
               max={total}
               values={[{ value: total - adding }]}
             />
-            <Text
-              weight="bold"
-              style={{ display: 'block', marginTop: '-8px' }}
-            >
-              {Math.ceil(adding / 2)}
-            </Text>
+            {total > 2 && (
+              <Text
+                weight="bold"
+                style={{ display: 'block', marginTop: '-8px' }}
+              >
+                {Math.ceil(adding / 2)}
+              </Text>
+            )}
           </Stack>
         </Box>
       ) : null}
