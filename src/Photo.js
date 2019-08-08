@@ -188,14 +188,17 @@ const Photo = ({
               path={`/events/${photo.eventToken}#${photo.id}`}
             />
           )}
-          <Text size="large" weight="bold">{photo.userName}</Text>
+          <Text size="large" weight="bold">
+            {((session && session.userId === photo.userId)
+              || (eventUser && eventUser.token === photo.eventUserToken))
+              ? 'me' : (photo.eventUserName || photo.userName)}
+          </Text>
           <Text color="dark-4">
             {(new Date(photo.date))
               .toLocaleTimeString('default', {
                 weekday: 'short',
                 hour: 'numeric',
                 minute: '2-digit',
-
               })}
           </Text>
           {onDelete && deleteControls}
