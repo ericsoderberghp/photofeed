@@ -6,7 +6,7 @@ const Screen = ({ background, children, controls }) => {
   return (
     <Box
       background={background}
-      pad={responsive === 'small' ? { bottom: 'xlarge' } : { top: 'large' }}
+      pad={responsive === 'small' ? { bottom: 'xlarge' } : { top: 'xlarge' }}
       style={{ minHeight: '100vh' }}
     >
       {controls}

@@ -17,7 +17,8 @@ const Controls = ({ left, label, right, menu }) => {
 
   return (
     <Box
-      margin="large"
+      margin="medium"
+      responsive={false}
       style={{
         position: 'fixed',
         zIndex: 100,
