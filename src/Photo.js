@@ -2,14 +2,13 @@ import React from 'react';
 import { Box, Button, Image, Stack, Text } from 'grommet';
 import { Calendar, Trash } from 'grommet-icons';
 import SessionContext from './SessionContext';
-import RoutedButton from './RoutedButton';
-import { Pusher } from './Router';
+import RoutedButton from './components/RoutedButton';
 import { apiUrl } from './utils';
 
 const resolution = 1080;
 
 const Photo = ({
-  event, photo, index, push, fill, effects, onDelete,
+  event, photo, index, fill, effects, onDelete,
  }) => {
   const session = React.useContext(SessionContext);
   const [detail, setDetail] = React.useState();
@@ -17,7 +16,9 @@ const Photo = ({
   const [confirmDelete, setConfirmDelete] = React.useState();
   const [deleting, setDeleting] = React.useState();
   const [deleted, setDeleted] = React.useState();
-  const [ignoreDrag, setIgnoreDrag] = React.useState();
+  const ignoreTimer = React.useRef(null);
+  const ignoreDrag = React.useRef(false);
+  // const [ignoreDrag, setIgnoreDrag] = React.useState();
   let touchStartX;
   let touchStartY;
 
@@ -30,13 +31,23 @@ const Photo = ({
 
   React.useEffect(() => {
     const onScroll = (event) => {
-      if (!ignoreDrag && detail) {
+      if (ignoreDrag.current) {
+        event.preventDefault();
+        clearTimeout(ignoreTimer.current);
+        ignoreTimer.current = setTimeout(() => (ignoreDrag.current = false), 100);
+      }
+      else if (!ignoreDrag.current && detail) {
         setDetail(false);
       }
     }
+
     document.addEventListener('scroll', onScroll);
-    return () => document.removeEventListener('scroll', onScroll);
-  }, [detail, ignoreDrag])
+
+    return () => {
+      clearTimeout(ignoreTimer);
+      document.removeEventListener('scroll', onScroll);
+    }
+  }, [detail])
 
   if (deleted) return null;
 
@@ -98,10 +109,14 @@ const Photo = ({
   let style;
   if (effects) {
     style = {};
-    if (effects.blackAndWhite) {
+    if (effects.filter === 'B/W') {
       style.filter = 'grayscale(100%) contrast(1.1)';
+    } else if (effects.filter === 'sepia') {
+      style.filter = 'sepia(100%)';
+    } else if (effects.filter === 'vivid') {
+      style.filter = 'saturate(200%)';
     }
-    if (effects.toss) {
+    if (effects.layout === 'collage') {
       style.transform =
         `scale(1.2${(index % 4) + 1}) rotate(${((index % 3) - 1) * 5}deg)`;
     }
@@ -113,56 +128,61 @@ const Photo = ({
   return (
     <Box
       id={photo.id}
+      flex={false}
       height={height}
       width={width}
       align="center"
       justify="center"
       animation={{ type: 'fadeIn', delay: index * 100 }}
       onTouchStart={(event) => {
-        if (event.touches.length === 1) {
-          touchStartX = event.touches[0].clientX;
-          touchStartY = event.touches[0].clientY;
+        if (event.changedTouches.length === 1) {
+          touchStartX = event.changedTouches[0].pageX;
+          touchStartY = event.changedTouches[0].pageY;
         }
       }}
       onTouchMove={(event) => {
-        if (event.touches.length === 1) {
-          event.preventDefault();
-          if (!ignoreDrag) {
-            const deltaX = event.touches[0].clientX - touchStartX;
-            const deltaY = Math.abs(event.touches[0].clientY - touchStartY);
-            if (!detail && deltaX < -100 && deltaY < 40) {
-              setIgnoreDrag(true);
+        event.preventDefault();
+        if (event.changedTouches.length === 1) {
+          if (!ignoreDrag.current) {
+            const deltaX = event.changedTouches[0].pageX - touchStartX;
+            const deltaY = Math.abs(event.changedTouches[0].pageY - touchStartY);
+            if (!detail && deltaX < -40 && deltaY < 100) {
+              ignoreDrag.current = true;
               setDetail(true);
-            } else if (detail && deltaX > 100 && deltaY < 40) {
-              setIgnoreDrag(true);
+            } else if (detail && deltaX > 40 && deltaY < 100) {
+              ignoreDrag.current = true;
               setDetail(false);
             }
           }
         }
       }}
       onTouchEnd={(event) => {
-        setIgnoreDrag(false);
         touchStartX = undefined;
         touchStartY = undefined;
+        clearTimeout(ignoreTimer.current);
+        ignoreTimer.current = setTimeout(() => (ignoreDrag.current = false), 100);
       }}
       onTouchCancel={() => {
-        setIgnoreDrag(false);
         touchStartX = undefined;
         touchStartY = undefined;
+        clearTimeout(ignoreTimer.current);
+        ignoreTimer.current = setTimeout(() => (ignoreDrag.current = false), 100);
       }}
       onWheel={(event) => {
         if (event.deltaX) {
           event.preventDefault();
         }
-        if (!ignoreDrag) {
+        if (!ignoreDrag.current) {
           if (!detail && event.deltaX > 0) {
-            setIgnoreDrag(true);
+            ignoreDrag.current = true;
             setDetail(true);
-            setTimeout(() => setIgnoreDrag(false), 100);
+            clearTimeout(ignoreTimer.current);
+            ignoreTimer.current = setTimeout(() => (ignoreDrag.current = false), 100);
           } else if (detail && (event.deltaX < 0)) {
-            setIgnoreDrag(true);
+            ignoreDrag.current = true;
             setDetail(false);
-            setTimeout(() => setIgnoreDrag(false), 100);
+            clearTimeout(ignoreTimer.current);
+            ignoreTimer.current = setTimeout(() => (ignoreDrag.current = false), 100);
           }
         }
       }}
@@ -231,8 +251,4 @@ const Photo = ({
   );
 }
 
-export default (props) => (
-  <Pusher>
-    {(push) => <Photo {...props} push={push} />}
-  </Pusher>
-);
+export default Photo;

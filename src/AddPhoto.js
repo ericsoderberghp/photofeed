@@ -6,6 +6,7 @@ import { Add } from 'grommet-icons';
 import styled, { keyframes } from 'styled-components';
 import EXIF from 'exif-js';
 import SessionContext from './SessionContext';
+import ControlButton from './components/ControlButton';
 import { apiUrl } from './utils';
 
 const resolution = 1080;
@@ -150,7 +151,7 @@ const AddPhoto = ({ event, onAdd }) => {
   return (
     <Stack
       guidingChild={1}
-      interactiveChild={(eventUser || session) ? 'first' : 1}
+      interactiveChild={(eventUser || session) ? 0 : 1}
     >
       <TextInput
         ref={inputRef}
@@ -167,13 +168,13 @@ const AddPhoto = ({ event, onAdd }) => {
             }
           }
         }}
-        style={{ opacity: 0 }}
+        style={{ opacity: 0, width: 48 }}
       />
       <Box style={adding ? { opacity: 0 } : undefined}>
-        <Button
+        <ControlButton
           title="Add a photo"
-          icon={<Add />}
-          hoverIndicator
+          primary
+          Icon={Add}
           onClick={() => setNaming(!naming)}
         />
         {naming && (

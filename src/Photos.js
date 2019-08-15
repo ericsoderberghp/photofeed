@@ -1,29 +1,28 @@
 import React from 'react';
-import {
-  Box, Button, DropButton, Grid, Heading, Keyboard, Paragraph,
-  ResponsiveContext, Text,
-} from 'grommet';
-import { Calendar } from 'grommet-icons';
-import Loading from './Loading';
-import Header from './Header';
+import { Box, Grid, Keyboard, Paragraph, ResponsiveContext } from 'grommet';
+import { Brush, Calendar, Grid as GridIcon, Play } from 'grommet-icons';
+import Screen from './components/Screen';
+import Loading from './components/Loading';
+import Controls from './components/Controls';
+import ControlLabel from './components/ControlLabel';
+import MenuButton from './components/MenuButton';
 import Player from './Player';
 import Photo from './Photo';
 
-const MenuButton = ({ label, onClick }) => (
-  <Button hoverIndicator onClick={onClick}>
-    <Box pad="medium">
-      <Text size="large" textAlign="center">{label}</Text>
-    </Box>
-  </Button>
-);
+const filters = ['none', 'B/W', 'sepia', 'vivid'];
+const layouts = ['grid', 'collage'];
 
 const Photos = ({
-  name, leftControl, rightControl, event, photos, onRefresh, onDelete,
+  name, leftControl, rightControl, menu, event, photos, onRefresh, onDelete,
 }) => {
+  const responsive = React.useContext(ResponsiveContext);
   const [refreshing, setRefreshing] = React.useState(photos);
   const [play, setPlay] = React.useState();
-  const [effects, setEffects] = React.useState({});
-  const headerRef = React.useRef();
+  const [effects, setEffects] = React.useState({
+    filter: 'none',
+    layout: responsive === 'small' ? 'grid' : 'collage',
+  });
+  const [showMenu, setShowMenu] = React.useState();
 
   React.useEffect(() => {
     let scrollTimer;
@@ -57,94 +56,95 @@ const Photos = ({
       />
     );
   } else {
+    const controls = (
+      <Controls
+        left={leftControl}
+        label={(
+          <ControlLabel label={name} onClick={() => setShowMenu(!showMenu)} />
+        )}
+        right={rightControl}
+        menu={showMenu ? (
+          <Box>
+            <MenuButton
+              label="Slideshow"
+              Icon={Play}
+              onClick={() => {
+                setShowMenu(false);
+                setPlay(true);
+              }}
+            />
+            <MenuButton
+              label="Filter"
+              Icon={Brush}
+              value={effects.filter}
+              onClick={() => {
+                const index = filters.indexOf(effects.filter) + 1;
+                const filter = filters[index < filters.length ? index : 0];
+                setEffects({ ...effects, filter });
+              }}
+            />
+            <MenuButton
+              label="Layout"
+              value={effects.layout}
+              Icon={GridIcon}
+              onClick={() => {
+                const index = layouts.indexOf(effects.layout) + 1;
+                const layout = layouts[index < layouts.length ? index : 0];
+                setEffects({ ...effects, layout });
+              }}
+            />
+            {menu && menu.filter(i => i)}
+          </Box>
+        ) : undefined}
+      />
+    );
+
     content = (
-      <Box
-        background={'dark-1'}
-        style={{ minHeight: '100vh' }}
-      >
-        <Header
-          ref={headerRef}
-          overflow="hidden"
-          margin={undefined}
-          background={{ color: 'dark-1', opacity: 'strong' }}
-          style={{ position: 'absolute', top: 0, width: '100vw', zIndex: 10 }}
-        >
-          {leftControl || <Box pad="medium" />}
-          <DropButton
-            hoverIndicator
-            dropTarget={headerRef.current}
-            dropAlign={{ top: 'bottom' }}
-            dropProps={{ plain: true, stretch: false }}
-            dropContent={(
-              <Box
-                width="medium"
-                background={{ color: 'dark-2', opacity: 'strong' }}
-              >
-                <MenuButton label="Slideshow" onClick={() => setPlay(true)} />
-                <MenuButton
-                  label={effects.blackAndWhite ? 'Color' : 'Black and White'}
-                  onClick={() =>
-                    setEffects({ ...effects, blackAndWhite: !effects.blackAndWhite })}
-                />
-                <MenuButton
-                  label={effects.toss ? 'Straighten' : 'Muss'}
-                  onClick={() =>
-                    setEffects({ ...effects, toss: !effects.toss })}
-                />
-              </Box>
-            )}
-          >
-            <Heading
-              size="small"
-              margin={{ horizontal: 'medium', vertical: 'xxsmall' }}
-            >
-              {name}
-            </Heading>
-          </DropButton>
-          {rightControl || <Box pad="medium" />}
-        </Header>
-        {refreshing && <Box background="accent-1" pad="large" />}
-        {!photos ? <Box margin="xlarge"><Loading Icon={Calendar} /></Box> : (
-          <ResponsiveContext.Consumer>
-            {(responsive) => (
-              <Box flex={false}>
-                {responsive === 'small'
-                  ? photos.map((photo, index) => (
+      <Screen controls={controls} background="black">
+        <Box flex={false}>
+          {refreshing && <Box background="accent-1" pad="large" />}
+          {!photos ? (
+            <Box flex align="center" justify="center">
+              <Loading Icon={Calendar} />
+            </Box>
+          ) : (
+            <Box flex>
+              {responsive === 'small'
+                ? photos.map((photo, index) => (
+                    <Photo
+                      key={photo.id || photo.name}
+                      fill="horizontal"
+                      photo={photo}
+                      index={index}
+                      event={event}
+                      effects={effects}
+                      onDelete={onDelete}
+                    />
+                )) : (
+                  <Grid columns="medium" rows="medium">
+                    {photos.map((photo, index) => (
                       <Photo
                         key={photo.id || photo.name}
-                        fill="horizontal"
                         photo={photo}
                         index={index}
                         event={event}
+                        fill
                         effects={effects}
                         onDelete={onDelete}
                       />
-                  )) : (
-                    <Grid columns="medium" rows="medium">
-                      {photos.map((photo, index) => (
-                        <Photo
-                          key={photo.id || photo.name}
-                          photo={photo}
-                          index={index}
-                          event={event}
-                          fill
-                          effects={effects}
-                          onDelete={onDelete}
-                        />
-                      ))}
-                    </Grid>
-                  )
-                }
-                {!photos.length && (
-                  <Box basis="medium" align="center" justify="center">
-                    <Paragraph>You should add some photos!</Paragraph>
-                  </Box>
-                )}
-              </Box>
-            )}
-          </ResponsiveContext.Consumer>
-        )}
-      </Box>
+                    ))}
+                  </Grid>
+                )
+              }
+              {!photos.length && (
+                <Box flex align="center" justify="center">
+                  <Paragraph>You should add some photos!</Paragraph>
+                </Box>
+              )}
+            </Box>
+          )}
+        </Box>
+      </Screen>
     )
   }
 

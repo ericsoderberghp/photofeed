@@ -1,9 +1,10 @@
 import React from 'react';
 import { Box, Heading, Paragraph } from 'grommet';
-import { Pusher } from './Router';
+import { RouterContext } from './Router';
 import { apiUrl } from './utils';
 
-const Join = ({ token, push }) => {
+const Join = ({ token }) => {
+  const { push } = React.useContext(RouterContext);
 
   React.useEffect(() => {
     const body = JSON.stringify({ userToken: token });
@@ -37,8 +38,4 @@ const Join = ({ token, push }) => {
   );
 }
 
-export default ({ token }) => (
-  <Pusher>
-    {(push) => <Join token={token} push={push} />}
-  </Pusher>
-);
+export default Join;

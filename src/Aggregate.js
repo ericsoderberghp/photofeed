@@ -1,7 +1,7 @@
 import React from 'react';
-import { Image } from 'grommet-icons';
+import { Calendar } from 'grommet-icons';
 import SessionContext from './SessionContext';
-import RoutedButton from './RoutedButton';
+import ControlButton from './components/ControlButton';
 import Photos from './Photos';
 import { apiUrl } from './utils';
 
@@ -30,9 +30,7 @@ const Aggregate = () => {
       name="Photo Feed"
       photos={photos}
       onRefresh={load}
-      leftControl={(
-        <RoutedButton path="/events" icon={<Image />} hoverIndicator />
-      )}
+      leftControl={<ControlButton path="/events" Icon={Calendar} />}
     />
   );
 }

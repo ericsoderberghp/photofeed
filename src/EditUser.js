@@ -1,17 +1,25 @@
 import React from 'react';
-import { Box, Button, CheckBox, Form, FormField, Heading, Text } from 'grommet';
-import { Previous, User as UserIcon } from 'grommet-icons';
-import Loading from './Loading';
-import Header from './Header';
+import { Box, Button, CheckBox, Form, FormField } from 'grommet';
+import { Previous, Share, Trash, User as UserIcon } from 'grommet-icons';
+import Screen from './components/Screen';
+import Loading from './components/Loading';
+import Controls from './components/Controls';
+import ControlLabel from './components/ControlLabel';
+import MenuButton from './components/MenuButton';
 import SessionContext from './SessionContext';
-import { Pusher } from './Router';
-import RoutedButton from './RoutedButton';
+import { RouterContext } from './Router';
+import ControlButton from './components/ControlButton';
 import { apiUrl } from './utils';
 
-const EditUser = ({ id, push }) => {
+const busyIcon = { loading: UserIcon, deleting: Trash, saving: UserIcon };
+
+const EditUser = ({ id }) => {
   const session = React.useContext(SessionContext);
+  const { push } = React.useContext(RouterContext);
   const [user, setUser] = React.useState();
-  const [busy, setBusy] = React.useState();
+  const [busy, setBusy] = React.useState('loading');
+  const [showMenu, setShowMenu] = React.useState();
+  const [confirmDelete, setConfirmDelete] = React.useState();
 
   React.useEffect(() => {
     fetch(`${apiUrl}/users/${id}`, {
@@ -23,26 +31,68 @@ const EditUser = ({ id, push }) => {
       .then((user) => {
         document.title = `${user.name} - Photo Feed';`
         setUser(user);
+        setBusy(undefined);
       });
   }, [id, session]);
 
   return (
-    <Box>
-      <Header margin={undefined}>
-        <RoutedButton path="/users" icon={<Previous />} hoverIndicator />
-        <Heading size="small" margin="none">{user ? user.name : ''}</Heading>
-        <Box pad="medium" />
-      </Header>
-      {!user ? <Loading Icon={UserIcon} /> : (
-        <Box
-          flex={false}
-          pad={{ horizontal: 'large', vertical: 'xlarge' }}
-          background="neutral-3"
-        >
+    <Screen
+      controls={(
+        <Controls
+          left={<ControlButton path="/users" Icon={Previous} />}
+          label={(
+            <ControlLabel
+              label={user ? user.name : ''}
+              onClick={() => setShowMenu(!showMenu)}
+            />
+          )}
+          menu={showMenu && (
+            <Box>
+              {navigator.share && (
+                <MenuButton
+                  label="Share"
+                  Icon={Share}
+                  onClick={() => navigator.share({
+                    title: `${user.name} - Photo Feed`,
+                    text: `${user.name} - Photo Feed`,
+                    url: `/users/${encodeURIComponent(user.token)}`,
+                  })}
+                />
+              )}
+              {confirmDelete && (
+                <MenuButton
+                  label="Confirm Delete"
+                  Icon={Trash}
+                  color="status-critical"
+                  onClick={() => {
+                    setBusy('deleting');
+                    fetch(`${apiUrl}/users/${encodeURIComponent(user.id)}`, {
+                      method: 'DELETE',
+                      headers: {
+                        'Authorization': `Bearer ${session.token}`,
+                      },
+                    })
+                      .then(() => push('/users'))
+                      .catch(() => setBusy(undefined));
+                  }}
+                />
+              )}
+              <MenuButton
+                label="Delete"
+                Icon={Trash}
+                onClick={() => setConfirmDelete(!confirmDelete)}
+              />
+            </Box>
+          )}
+        />
+      )}
+    >
+      {busy ? <Loading Icon={busyIcon[busy]} /> : (
+        <Box flex={false} alignSelf="center" width="large" pad="large">
           <Form
             value={{ name: user.name, email: user.email, admin: user.admin, password: '' }}
             onSubmit={({ value: nextUser }) => {
-              setBusy(true);
+              setBusy('saving');
               fetch(`${apiUrl}/users/${id}`, {
                 method: 'PUT',
                 headers: {
@@ -53,7 +103,7 @@ const EditUser = ({ id, push }) => {
               })
                 .then(response => response.json())
                 .then(() => push('/users'))
-                .catch(() => setBusy(false));
+                .catch(() => setBusy(undefined));
             }}
           >
             <FormField name="name" placeholder="name" required />
@@ -61,20 +111,13 @@ const EditUser = ({ id, push }) => {
             <FormField name="password" placeholder="new password" type="password" />
             <FormField name="admin" pad component={CheckBox} label="administrator?" />
             <Box align="center" margin={{ top: 'large' }}>
-              {busy
-                ? <Text>Just a sec ...</Text>
-                : <Button type="submit" primary label="Update" />
-              }
+              <Button type="submit" primary label="Update" />
             </Box>
           </Form>
         </Box>
       )}
-    </Box>
+    </Screen>
   );
 }
 
-export default ({ id }) => (
-  <Pusher>
-    {(push) => <EditUser id={id} push={push} />}
-  </Pusher>
-);
+export default EditUser;

@@ -4,7 +4,7 @@
 import React, { Children, Component } from 'react';
 import PropTypes from 'prop-types';
 
-const RouterContext = React.createContext({});
+export const RouterContext = React.createContext({});
 
 export class Router extends Component {
 
@@ -122,42 +122,6 @@ Route.propTypes = {
 Route.defaultProps = {
   component: undefined,
   redirect: undefined,
-};
-
-export const Clicker = ({ children, path }) => (
-  <RouterContext.Consumer>
-    {({ push }) =>
-      children(event => {
-        event.preventDefault();
-        push(path);
-      })
-    }
-  </RouterContext.Consumer>
-);
-
-Clicker.propTypes = {
-  children: PropTypes.func.isRequired,
-  path: PropTypes.string.isRequired,
-};
-
-export const Watcher = ({ children }) => (
-  <RouterContext.Consumer>
-    {({ path }) => children(path)}
-  </RouterContext.Consumer>
-);
-
-Watcher.propTypes = {
-  children: PropTypes.func.isRequired,
-};
-
-export const Pusher = ({ children }) => (
-  <RouterContext.Consumer>
-    {({ push }) => children(push)}
-  </RouterContext.Consumer>
-);
-
-Pusher.propTypes = {
-  children: PropTypes.func.isRequired,
 };
 
 export default Router;

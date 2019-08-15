@@ -20,6 +20,7 @@ const Start = ({ onSession }) => {
         margin="large"
         pad="large"
         align="center"
+        round
         background={{ color: 'accent-3', opacity: 'strong' }}
       >
         <Heading textAlign="center">Welcome</Heading>

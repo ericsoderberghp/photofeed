@@ -1,19 +1,17 @@
 import React from 'react';
-import { Box, Button, Form, FormField, Heading, Text } from 'grommet';
-import { Calendar, Edit, Previous, Share, Trash } from 'grommet-icons';
-import Loading from './Loading';
-import Header from './Header';
+import { Box, Text } from 'grommet';
+import { Add, Calendar, Group } from 'grommet-icons';
+import Screen from './components/Screen';
+import Loading from './components/Loading';
+import Controls from './components/Controls';
 import SessionContext from './SessionContext';
-import RoutedButton from './RoutedButton';
+import ControlButton from './components/ControlButton';
+import RoutedButton from './components/RoutedButton';
 import { apiUrl } from './utils';
 
 const Events = () => {
   const session = React.useContext(SessionContext);
   const [events, setEvents] = React.useState();
-  const [add, setAdd] = React.useState();
-  const [adding, setAdding] = React.useState();
-  const [confirmDelete, setConfirmDelete] = React.useState();
-  const [deleting, setDeleting] = React.useState();
 
   React.useEffect(() => {
     fetch(`${apiUrl}/events`, {
@@ -27,132 +25,45 @@ const Events = () => {
   }, [session]);
 
   return (
-    <Box>
-      <Header>
-        <RoutedButton path="/" icon={<Previous />} hoverIndicator />
-        <Heading size="small" margin="none">Events</Heading>
-        <Box pad="medium" />
-      </Header>
-
-      {!events ? <Loading Icon={Calendar} /> : (
+    <Screen
+      controls={(
+        <Controls
+          left={session.admin
+            ? <ControlButton path="/users" Icon={Group} /> : undefined}
+          label="Events"
+          right={<ControlButton path="/events/add" Icon={Add} />}
+        />
+      )}
+    >
+      {!events ? (
+        <Box flex justify="center" align="center">
+          <Loading Icon={Calendar} />
+        </Box>
+      ) : (
         <Box flex="grow">
-          <Box flex="grow">
-            {events.map(event => (
-              <Box
-                key={event.id}
-                direction="row"
-                justify="between"
-                align="center"
-                margin={{ bottom: 'medium' }}
-                background={deleting === event.id
-                  ? { color: 'dark-2', opacity: 'medium' } : undefined}
-              >
-                <Box flex>
-                  <RoutedButton
-                    fill
-                    path={`/events/${encodeURIComponent(event.token)}`}
-                    hoverIndicator
-                  >
-                    <Box pad={{ horizontal: 'large', vertical: 'medium' }}>
-                      <Text weight="bold">{event.name}</Text>
-                    </Box>
-                  </RoutedButton>
-                </Box>
-                <Box flex={false} direction="row" align="center">
-                  {navigator.share && (event.id !== confirmDelete) && (
-                    <Button
-                      icon={<Share />}
-                      hoverIndicator
-                      onClick={() => navigator.share({
-                        title: `${event.name} - Photo Feed`,
-                        text: `${event.name} - Photo Feed`,
-                        url: `/events/${encodeURIComponent(event.token)}`,
-                      })}
-                    />
-                  )}
-                  {(event.id !== confirmDelete) && (
-                    <RoutedButton
-                      path={`/events/edit/${event.id}`}
-                      icon={<Edit />}
-                      hoverIndicator
-                    />
-                  )}
-                  {(event.id === confirmDelete) && (
-                    <Button
-                      icon={<Trash color="status-critical" />}
-                      hoverIndicator
-                      onClick={() => {
-                        setDeleting(event.id);
-                        setConfirmDelete(undefined);
-                        fetch(`${apiUrl}/events/${event.id}`, {
-                          method: 'DELETE',
-                          headers: {
-                            'Authorization': `Bearer ${session.token}`,
-                          },
-                        })
-                        .then(() => setDeleting(undefined))
-                        .then(() => setEvents(events.filter(e => e.id !== event.id)));
-                      }}
-                    />
-                  )}
-                  <Button
-                    icon={<Trash />}
-                    hoverIndicator
-                    onClick={() =>
-                      setConfirmDelete(confirmDelete === event.id ? undefined : event.id)}
-                  />
-                </Box>
+          <Box>
+            <RoutedButton fill path="/" hoverIndicator>
+              <Box pad={{ horizontal: 'large', vertical: 'medium' }}>
+                <Text weight="bold">Feed</Text>
               </Box>
-            ))}
-
-            <Box align="center" margin="large">
-              <Button label="New Event" onClick={() => setAdd(!add)} />
-            </Box>
-            {add && (
-              <Box
-                pad={{ horizontal: 'large', vertical: 'xlarge' }}
-                background="neutral-3"
-              >
-                <Form
-                  value={{ name: '', userId: session.userId  }}
-                  onSubmit={({ value }) => {
-                    setAdding(true);
-                    const body = JSON.stringify(value);
-                    fetch(`${apiUrl}/events`, {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${session.token}`,
-                        'Content-Type': 'application/json; charset=UTF-8',
-                        'Content-Length': body.length,
-                      },
-                      body,
-                    })
-                      .then(response => response.json())
-                      .then((event) => setEvents([event, ...events]))
-                      .then(() => setAdd(false))
-                      .then(() => setAdding(false))
-                      .catch(() => setAdding(false));
-                  }}
-                >
-                  <FormField name="name" placeholder="name" required />
-                  <Box align="center" margin={{ top: 'large' }}>
-                    {adding
-                      ? <Text>Just a sec ...</Text>
-                      : <Button type="submit" primary label="Add Event" />}
-                  </Box>
-                </Form>
-              </Box>
-            )}
+            </RoutedButton>
           </Box>
-
-          {session.admin && (
-            <Box flex={false} alignSelf="center" margin="xlarge">
-              <RoutedButton path="/users" label="Users" />
+          {events.map(event => (
+            <Box key={event.id}>
+              <RoutedButton
+                fill
+                path={`/events/${encodeURIComponent(event.token)}`}
+                hoverIndicator
+              >
+                <Box pad={{ horizontal: 'large', vertical: 'medium' }}>
+                  <Text weight="bold">{event.name}</Text>
+                </Box>
+              </RoutedButton>
             </Box>
-          )}
+          ))}
         </Box>
       )}
-    </Box>
+    </Screen>
   );
 }
 

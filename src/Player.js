@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, Button, Carousel, Keyboard, Stack } from 'grommet';
+import { Box, Carousel, Keyboard, Stack } from 'grommet';
 import { Close, Play, Pause } from 'grommet-icons';
+import ControlButton from './components/ControlButton';
 import Photo from './Photo';
 
 const Player = ({ event, photos, effects, onDone }) => {
@@ -53,17 +54,22 @@ const Player = ({ event, photos, effects, onDone }) => {
           </Carousel>
         </Box>
         {showControls && (
-          <Box gap="medium">
-            <Box pad="large" />
-            <Button
+          <Box
+            gap="medium"
+            margin={{ top: 'xlarge' }}
+            pad="medium"
+            background={{ color: 'black', opacity: 'strong' }}
+            round="large"
+            responsive={false}
+          >
+            <ControlButton
               icon={play ? <Pause size="large" /> : <Play size="large" />}
-              hoverIndicator
               onClick={() => {
                 setPlay(!play);
                 setShowControls(false);
               }}
             />
-            <Button icon={<Close size="large" />} hoverIndicator onClick={onDone} />
+            <ControlButton icon={<Close size="large" />} onClick={onDone} />
           </Box>
         )}
       </Stack>

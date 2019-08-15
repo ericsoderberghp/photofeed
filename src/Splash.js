@@ -1,15 +1,17 @@
 import React from 'react';
 import { Box, Heading } from 'grommet';
 import { Image } from 'grommet-icons';
-import Header from './Header';
-import Loading from './Loading';
+import Controls from './components/Controls';
+import Loading from './components/Loading';
 
 const Splash = () => (
-  <Box animation="fadeIn">
-    <Header justify="center">
+  <Box fill animation="fadeIn">
+    <Controls justify="center">
       <Heading size="small" margin="small">PhotoFeed</Heading>
-    </Header>
-    <Loading Icon={Image} />
+    </Controls>
+    <Box flex justify="center" align="center">
+      <Loading Icon={Image} />
+    </Box>
   </Box>
 );
 
