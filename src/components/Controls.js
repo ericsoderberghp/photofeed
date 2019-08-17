@@ -24,7 +24,8 @@ const Controls = ({ left, label, right, menu }) => {
         zIndex: 100,
         bottom: responsive === 'small' ? 0 : undefined,
         top: responsive !== 'small' ? 0 : undefined,
-        left: responsive !== 'small' ? '50%' : undefined,
+        left: responsive !== 'small' ? '50%' : 0,
+        right: responsive === 'small' ? 0 : undefined,
         transform: responsive !== 'small' ? 'translateX(-50%)' : undefined,
         // width: responsive === 'small' ? '100vw' : 'auto',
       }}
@@ -36,6 +37,7 @@ const Controls = ({ left, label, right, menu }) => {
         direction="row"
         justify="between"
         align="center"
+        gap="small"
         round={menu
           ? {
             size: responsive === 'small' ? 'large' : 'medium',

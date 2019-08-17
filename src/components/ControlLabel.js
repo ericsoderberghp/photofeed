@@ -11,7 +11,7 @@ const ControlLabel = ({ label, onClick }) => {
       justify="center"
       pad={{ horizontal: 'medium' }}
     >
-      <Heading size="small" margin="none" truncate>
+      <Heading size="small" margin="none" truncate style={{ maxWidth: '100%' }}>
         {label}
       </Heading>
     </Box>
