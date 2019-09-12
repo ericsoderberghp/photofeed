@@ -76,7 +76,8 @@ exports.events = (req, res) => {
             });
         }
         return db.collection('events')
-          .where('userId', '==', session.userId).get()
+          .where('userId', '==', session.userId)
+          .orderBy('created', 'desc').get()
           .then(querySnap =>
             res.json(querySnap.docs.map(snap =>
               ({ id: snap.id, ...snap.data() }))));
