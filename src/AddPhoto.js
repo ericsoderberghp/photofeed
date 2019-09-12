@@ -47,6 +47,7 @@ const AddPhoto = ({ event, onAdd }) => {
   }, [session]);
 
   const addPhoto = (file) => {
+    // TODO: refactor to reduce duplication with addVideo()
     const photo = {
       name: file.name,
       type: file.type,
@@ -148,6 +149,48 @@ const AddPhoto = ({ event, onAdd }) => {
     reader.readAsDataURL(file);
   }
 
+  const addVideo = (file) => {
+    const photo = {
+      name: file.name,
+      type: file.type,
+      date: file.lastModified,
+      eventId: event.id,
+    };
+    if (session) {
+      photo.userId = session.userId;
+    } else if (eventUser) {
+      photo.eventUserName = eventUser.name;
+      photo.eventUserToken = eventUser.token;
+      photo.eventToken = event.token;
+    }
+    setAdding(prevAdding => prevAdding - 1);
+
+    const formData = new FormData();
+    formData.append('photo', JSON.stringify(photo));
+    fetch(`${apiUrl}/photos`, {
+      method: 'POST',
+      headers: {
+        'Authorization': session ? `Bearer ${session.token}` : '',
+      },
+      body: formData,
+    })
+      .then(response => response.json())
+      .then((photo) =>
+        // we should have the resumable session upload URI now
+        fetch(photo.uploadURI, {
+          method: 'PUT',
+          headers: {
+            'Authorization': session ? `Bearer ${session.token}` : '',
+          },
+          body: file,
+        })
+        .then((photo) => {
+          setAdding(prevAdding => prevAdding - 1);
+          onAdd(photo);
+        })
+      );
+  }
+
   return (
     <Stack
       guidingChild={1}
@@ -156,7 +199,7 @@ const AddPhoto = ({ event, onAdd }) => {
       <TextInput
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/mp4,video/x-m4v,video/*"
         multiple
         onChange={(event) => {
           const files = event.target.files;
@@ -164,7 +207,12 @@ const AddPhoto = ({ event, onAdd }) => {
             setAdding(files.length * 2);
             setTotal(files.length * 2);
             for (let i=0; i<files.length; i++) {
-              addPhoto(files[i]);
+              const file = files[i];
+              if (file.type.startsWith('image/')) {
+                addPhoto(file);
+              } else if (file.type.startsWith('video/')) {
+                addVideo(file);
+              }
             }
           }
         }}

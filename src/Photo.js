@@ -1,8 +1,9 @@
 import React from 'react';
-import { Box, Button, Image, Stack, Text } from 'grommet';
-import { Calendar, Trash } from 'grommet-icons';
+import { Box, Button, Image, Stack, Text, Video } from 'grommet';
+import { Blank, Calendar, Play, Video as VideoIcon, Trash } from 'grommet-icons';
 import SessionContext from './SessionContext';
 import RoutedButton from './components/RoutedButton';
+import Loading from './components/Loading';
 import { apiUrl } from './utils';
 
 const resolution = 1080;
@@ -11,11 +12,13 @@ const Photo = ({
   event, photo, index, fill, effects, onDelete,
  }) => {
   const session = React.useContext(SessionContext);
+  const [videoState, setVideoState] = React.useState('paused');
   const [detail, setDetail] = React.useState();
   const [eventUser, setEventUser] = React.useState();
   const [confirmDelete, setConfirmDelete] = React.useState();
   const [deleting, setDeleting] = React.useState();
   const [deleted, setDeleted] = React.useState();
+  const videoRef = React.useRef();
   const ignoreTimer = React.useRef(null);
   const ignoreDrag = React.useRef(false);
   // const [ignoreDrag, setIgnoreDrag] = React.useState();
@@ -232,12 +235,46 @@ const Photo = ({
               : undefined)
           }
         >
-          <Image
-            fit="contain"
-            src={photo.src}
-            width={fill ? "100%" : undefined}
-            style={style}
-          />
+          {photo.type.startsWith('image/') && (
+            <Image
+              fit="contain"
+              src={photo.src}
+              width={fill ? "100%" : undefined}
+              style={style}
+            />
+          )}
+          {photo.type.startsWith('video/') && (
+            <Stack anchor="center" style={style}>
+              <Video
+                ref={videoRef}
+                fit="contain"
+                controls={false}
+                width={fill ? "100%" : undefined}
+                style={style}
+                onPlaying={() => setVideoState('playing')}
+                onPause={() => setVideoState('paused')}
+                onEnded={() => setVideoState('paused')}
+              >
+                <source src={`${photo.src}#t=0.1`} type={photo.type} />
+              </Video>
+              {!detail &&  (
+                <Button
+                  icon={videoState === 'paused' ? <Play /> : <Blank />}
+                  hoverIndicator
+                  onClick={() => {
+                    if (videoState !== 'paused') {
+                      videoRef.current.pause();
+                      setVideoState('paused');
+                    } else {
+                      videoRef.current.play();
+                      setVideoState('loading');
+                    }
+                  }}
+                />
+              )}
+              {videoState === 'loading' && <Loading Icon={VideoIcon} />}
+            </Stack>
+          )}
         </Box>
         {deleting && (
           <Box

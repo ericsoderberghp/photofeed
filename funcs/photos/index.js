@@ -172,9 +172,10 @@ exports.photos = (req, res) => {
             eventUserName, eventUserToken,
           } = photo;
           const savePhoto = {
-            name, type, date, aspectRatio, eventId,
+            name, type, date, eventId,
             created: (new Date()).toISOString(),
           };
+          if (aspectRatio) savePhoto.aspectRatio = aspectRatio;
           if (userId) savePhoto.userId = userId;
           if (eventUserName) savePhoto.eventUserName = eventUserName;
           if (eventUserToken) savePhoto.eventUserToken = eventUserToken;
@@ -195,22 +196,31 @@ exports.photos = (req, res) => {
               // now that we have an id, we can update the file src
               const id = photoSnap.id;
               const bucketFileName = `${id}.${name.split('.')[1]}`;
+              const file = bucket.file(bucketFileName);
               const src = `https://${bucketName}.storage.googleapis.com/${bucketFileName}`;
               photo = { ...photoSnap.data(), id, src }; // so we can respond
+
               return photoSnap.ref.update({ src })
                 .then(() => {
-                  const file = bucket.file(bucketFileName);
-                  const bucketFileStream = file.createWriteStream({ resumable: false });
-                  srcFile.pipe(bucketFileStream);
-                  return new Promise((res, rej) => {
-                    srcFile.on('end', () => {
-                      bucketFileStream.end();
+                  if (srcFile) {
+                    const bucketFileStream = file.createWriteStream({ resumable: false });
+                    srcFile.pipe(bucketFileStream);
+                    return new Promise((res, rej) => {
+                      srcFile.on('end', () => {
+                        bucketFileStream.end();
+                      });
+                      bucketFileStream.on('finish', res);
+                      bucketFileStream.on('error', reject);
                     });
-                    bucketFileStream.on('finish', res);
-                    bucketFileStream.on('error', rej);
-                  });
+                  }
+                  // !srcFile, video or too large
+                  return file.createResumableUpload()
+                    .then((data) => {
+                      photo.uploadURI = data[0];
+                      res.json(photo);
+                    });
                 });
-              }));
+            }));
         }
       });
       busboy.on('file', (fieldname, file, filename) => {
