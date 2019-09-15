@@ -142,7 +142,8 @@ const AddPhoto = ({ event, onAdd }) => {
             .then((photo) => {
               setAdding(prevAdding => prevAdding - 1);
               onAdd(photo);
-            });
+            })
+            .catch(() => setAdding(prevAdding => prevAdding - 1));
         }, photo.type);
       }
 
@@ -191,7 +192,8 @@ const AddPhoto = ({ event, onAdd }) => {
           setAdding(prevAdding => prevAdding - 1);
           onAdd(photo);
         })
-      );
+      )
+      .catch(() => setAdding(prevAdding => prevAdding - 1));
   }
 
   return (
