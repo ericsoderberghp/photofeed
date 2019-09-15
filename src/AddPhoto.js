@@ -66,6 +66,9 @@ const AddPhoto = ({ event, onAdd }) => {
     // read EXIF data
     EXIF.getData(file, function () {
       orientation = EXIF.getTag(file, "Orientation");
+      const date = EXIF.getTag(file, "DateTimeOriginal");
+      const parts = date.split(" ");
+      photo.date = `${parts[0].replace(/:/g, "-")}T${parts[1]}`;
     });
 
     // read file, load into an img, scale and rotate in a canvas
