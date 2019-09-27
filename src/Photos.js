@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Grid, Keyboard, Paragraph, ResponsiveContext } from 'grommet';
+import { Box, Grid, InfiniteScroll, Keyboard, Paragraph, ResponsiveContext } from 'grommet';
 import { Brush, Calendar, Grid as GridIcon, Play } from 'grommet-icons';
 import Screen from './components/Screen';
 import Loading from './components/Loading';
@@ -110,29 +110,35 @@ const Photos = ({
           ) : (
             <Box flex>
               {responsive === 'small'
-                ? photos.map((photo, index) => (
-                    <Photo
-                      key={photo.id || photo.name}
-                      fill="horizontal"
-                      photo={photo}
-                      index={index}
-                      event={event}
-                      effects={effects}
-                      onDelete={onDelete}
-                    />
-                )) : (
-                  <Grid columns="medium" rows="medium">
-                    {photos.map((photo, index) => (
+                ? (
+                  <InfiniteScroll items={photos} step={3}>
+                    {(photo, index) => (
                       <Photo
                         key={photo.id || photo.name}
+                        fill="horizontal"
                         photo={photo}
                         index={index}
                         event={event}
-                        fill
                         effects={effects}
                         onDelete={onDelete}
                       />
-                    ))}
+                    )}
+                  </InfiniteScroll>
+                ) : (
+                  <Grid columns="medium" rows="medium">
+                    <InfiniteScroll items={photos} step={9}>
+                      {(photo, index) => (
+                        <Photo
+                          key={photo.id || photo.name}
+                          photo={photo}
+                          index={index}
+                          event={event}
+                          fill
+                          effects={effects}
+                          onDelete={onDelete}
+                        />
+                      )}
+                    </InfiniteScroll>
                   </Grid>
                 )
               }
