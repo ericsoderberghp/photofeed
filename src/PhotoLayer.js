@@ -65,7 +65,7 @@ const PhotoLayer = ({
     : { weekday: 'short', hour: 'numeric' });
 
   return (
-    <Layer onEsc={() => onSelect(undefined)} full modal plain>
+    <Layer onEsc={() => onSelect(undefined)} full modal>
       <Keyboard
         target="document"
         onLeft={() => onSelect(index - 1)}
