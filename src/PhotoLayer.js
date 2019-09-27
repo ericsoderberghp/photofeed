@@ -72,7 +72,7 @@ const PhotoLayer = ({
         onRight={() => onSelect(index + 1)}
       >
         <Box fill background="black">
-          <Box flex>
+          <Box flex overflow="hidden">
             {deleting ? (
               <Box background={{ color: 'dark-2', opacity: 'strong' }} />
             ) : (

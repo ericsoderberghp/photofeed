@@ -68,6 +68,7 @@ const Photo = ({
           <Stack anchor="center" style={style}>
             <Video
               ref={videoRef}
+              key={photo.src}
               fit="contain"
               controls={false}
               width={fill ? "100%" : undefined}
@@ -81,7 +82,8 @@ const Photo = ({
             <Button
               icon={videoState === 'paused' ? <Play /> : <Blank />}
               hoverIndicator
-              onClick={() => {
+              onClick={(event) => {
+                event.stopPropagation();
                 if (videoState !== 'paused') {
                   videoRef.current.pause();
                   setVideoState('paused');
