@@ -21,7 +21,7 @@ const Controls = ({ left, label, right, menu }) => {
       responsive={false}
       style={{
         position: 'fixed',
-        zIndex: 100,
+        zIndex: 1,
         bottom: responsive === 'small' ? 0 : undefined,
         top: responsive !== 'small' ? 0 : undefined,
         left: responsive !== 'small' ? '50%' : 0,

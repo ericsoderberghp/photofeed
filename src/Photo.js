@@ -1,96 +1,15 @@
 import React from 'react';
-import { Box, Button, Image, Stack, Text, Video } from 'grommet';
-import { Blank, Calendar, Play, Video as VideoIcon, Trash } from 'grommet-icons';
-import SessionContext from './SessionContext';
-import RoutedButton from './components/RoutedButton';
+import { Box, Button, Image, Stack, Video } from 'grommet';
+import { Blank, Play, Video as VideoIcon } from 'grommet-icons';
 import Loading from './components/Loading';
-import { apiUrl } from './utils';
 
 const resolution = 1080;
 
 const Photo = ({
-  event, photo, index, fill, effects, onDelete,
+  event, photo, index, fill, effects, onDelete, ...rest
  }) => {
-  const session = React.useContext(SessionContext);
   const [videoState, setVideoState] = React.useState('paused');
-  const [detail, setDetail] = React.useState();
-  const [eventUser, setEventUser] = React.useState();
-  const [confirmDelete, setConfirmDelete] = React.useState();
-  const [deleting, setDeleting] = React.useState();
-  const [deleted, setDeleted] = React.useState();
   const videoRef = React.useRef();
-  const ignoreTimer = React.useRef(null);
-  const ignoreDrag = React.useRef(false);
-  // const [ignoreDrag, setIgnoreDrag] = React.useState();
-  let touchStartX;
-  let touchStartY;
-
-  React.useEffect(() => {
-    const stored = localStorage.getItem('eventUser');
-    if (stored) {
-      setEventUser(JSON.parse(stored));
-    }
-  }, [])
-
-  React.useEffect(() => {
-    const onScroll = (event) => {
-      if (ignoreDrag.current) {
-        event.preventDefault();
-        clearTimeout(ignoreTimer.current);
-        ignoreTimer.current = setTimeout(() => (ignoreDrag.current = false), 100);
-      }
-      else if (!ignoreDrag.current && detail) {
-        setDetail(false);
-      }
-    }
-
-    document.addEventListener('scroll', onScroll);
-
-    return () => {
-      clearTimeout(ignoreTimer);
-      document.removeEventListener('scroll', onScroll);
-    }
-  }, [detail])
-
-  if (deleted) return null;
-
-  const doDelete = () => {
-    setDeleting(true);
-    fetch(`${apiUrl}/photos/${photo.id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${session ? session.token : eventUser.token}`,
-      },
-    })
-      .then(() => setConfirmDelete(undefined))
-      .then(() => setDeleted(true))
-      .then(() => onDelete(photo))
-      .catch(() => setDeleting(false));
-  }
-
-  let deleteControls;
-  if ((session && (session.admin || session.userId === event.userId))
-    || (eventUser && eventUser.token === photo.eventUserToken)) {
-    deleteControls = (
-      <Box direction="row" margin={{ top: 'medium' }}>
-        {confirmDelete && !deleting && (
-          <Button
-            icon={ <Trash color="status-critical" />}
-            hoverIndicator
-            disabled={deleting}
-            onClick={doDelete}
-          />
-        )}
-        {onDelete && (
-          <Button
-            icon={<Trash color="light-4" />}
-            hoverIndicator
-            onClick={() => setConfirmDelete(!confirmDelete)}
-          />
-        )}
-      </Box>
-    )
-  }
 
   let height;
   let width;
@@ -123,9 +42,6 @@ const Photo = ({
       style.transform =
         `scale(1.2${(index % 4) + 1}) rotate(${((index % 3) - 1) * 5}deg)`;
     }
-    if (detail) {
-      style.transform = `translateX(-50%)`;
-    }
   }
 
   return (
@@ -137,153 +53,48 @@ const Photo = ({
       align="center"
       justify="center"
       animation={{ type: 'fadeIn', delay: index * 100 }}
-      onTouchStart={(event) => {
-        if (event.changedTouches.length === 1) {
-          touchStartX = event.changedTouches[0].pageX;
-          touchStartY = event.changedTouches[0].pageY;
-        }
-      }}
-      onTouchMove={(event) => {
-        event.preventDefault();
-        if (event.changedTouches.length === 1) {
-          if (!ignoreDrag.current) {
-            const deltaX = event.changedTouches[0].pageX - touchStartX;
-            const deltaY = Math.abs(event.changedTouches[0].pageY - touchStartY);
-            if (!detail && deltaX < -40 && deltaY < 100) {
-              ignoreDrag.current = true;
-              setDetail(true);
-            } else if (detail && deltaX > 40 && deltaY < 100) {
-              ignoreDrag.current = true;
-              setDetail(false);
-            }
-          }
-        }
-      }}
-      onTouchEnd={(event) => {
-        touchStartX = undefined;
-        touchStartY = undefined;
-        clearTimeout(ignoreTimer.current);
-        ignoreTimer.current = setTimeout(() => (ignoreDrag.current = false), 100);
-      }}
-      onTouchCancel={() => {
-        touchStartX = undefined;
-        touchStartY = undefined;
-        clearTimeout(ignoreTimer.current);
-        ignoreTimer.current = setTimeout(() => (ignoreDrag.current = false), 100);
-      }}
-      onWheel={(event) => {
-        if (event.deltaX) {
-          event.preventDefault();
-        }
-        if (!ignoreDrag.current) {
-          if (!detail && event.deltaX > 0) {
-            ignoreDrag.current = true;
-            setDetail(true);
-            clearTimeout(ignoreTimer.current);
-            ignoreTimer.current = setTimeout(() => (ignoreDrag.current = false), 100);
-          } else if (detail && (event.deltaX < 0)) {
-            ignoreDrag.current = true;
-            setDetail(false);
-            clearTimeout(ignoreTimer.current);
-            ignoreTimer.current = setTimeout(() => (ignoreDrag.current = false), 100);
-          }
-        }
-      }}
+      {...rest}
     >
-      <Stack
-        fill
-        guidingChild={1}
-        anchor="right"
-        interactiveChild={detail ? 0 : 1}
-      >
-        <Box
-          align="end"
-          justify="end"
-          pad="medium"
-          gap="small"
-          animation={detail ? 'fadeIn' : undefined}
-          style={!detail ? { opacity: 0 } : undefined}
-        >
-          {!event && (
-            <RoutedButton
-              icon={<Calendar />}
-              hoverIndicator
-              path={`/events/${photo.eventToken}#${photo.id}`}
-            />
-          )}
-          <Text size="large" weight="bold">
-            {((session && session.userId === photo.userId)
-              || (eventUser && eventUser.token === photo.eventUserToken))
-              ? 'me' : (photo.eventUserName || photo.userName)}
-          </Text>
-          <Text color="dark-4">
-            {(new Date(photo.date))
-              .toLocaleTimeString('default', {
-                weekday: 'short',
-                hour: 'numeric',
-                minute: '2-digit',
-              })}
-          </Text>
-          {onDelete && deleteControls}
-        </Box>
-        <Box
-          fill={fill}
-          animation={detail
-            ? { type: 'slideLeft', size: 'large' }
-            : (detail === false
-              ? { type: 'slideRight', size: 'large' }
-              : undefined)
-          }
-        >
-          {photo.type.startsWith('image/') && (
-            <Image
-              fit="contain"
-              src={photo.src}
-              width={fill ? "100%" : undefined}
-              style={style}
-            />
-          )}
-          {photo.type.startsWith('video/') && (
-            <Stack anchor="center" style={style}>
-              <Video
-                ref={videoRef}
-                fit="contain"
-                controls={false}
-                width={fill ? "100%" : undefined}
-                style={style}
-                onPlaying={() => setVideoState('playing')}
-                onPause={() => setVideoState('paused')}
-                onEnded={() => setVideoState('paused')}
-              >
-                <source src={`${photo.src}#t=0.1`} type={photo.type} />
-              </Video>
-              {!detail &&  (
-                <Button
-                  icon={videoState === 'paused' ? <Play /> : <Blank />}
-                  hoverIndicator
-                  onClick={() => {
-                    if (videoState !== 'paused') {
-                      videoRef.current.pause();
-                      setVideoState('paused');
-                    } else {
-                      videoRef.current.play();
-                      setVideoState('loading');
-                    }
-                  }}
-                />
-              )}
-              {videoState === 'loading' && <Loading Icon={VideoIcon} />}
-            </Stack>
-          )}
-        </Box>
-        {deleting && (
-          <Box
-            height={height}
-            width={width || `${resolution / 2}px`}
-            background={{ color: 'dark-2', opacity: 'strong' }}
+      <Box fill={fill}>
+        {photo.type.startsWith('image/') && (
+          <Image
+            fit="contain"
+            src={photo.src}
+            width={fill ? "100%" : undefined}
+            style={style}
           />
         )}
-      </Stack>
+        {photo.type.startsWith('video/') && (
+          <Stack anchor="center" style={style}>
+            <Video
+              ref={videoRef}
+              fit="contain"
+              controls={false}
+              width={fill ? "100%" : undefined}
+              style={style}
+              onPlaying={() => setVideoState('playing')}
+              onPause={() => setVideoState('paused')}
+              onEnded={() => setVideoState('paused')}
+            >
+              <source src={`${photo.src}#t=0.1`} type={photo.type} />
+            </Video>
+            <Button
+              icon={videoState === 'paused' ? <Play /> : <Blank />}
+              hoverIndicator
+              onClick={() => {
+                if (videoState !== 'paused') {
+                  videoRef.current.pause();
+                  setVideoState('paused');
+                } else {
+                  videoRef.current.play();
+                  setVideoState('loading');
+                }
+              }}
+            />
+            {videoState === 'loading' && <Loading Icon={VideoIcon} />}
+          </Stack>
+        )}
+      </Box>
     </Box>
   );
 }

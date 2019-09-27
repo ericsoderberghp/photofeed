@@ -1,5 +1,7 @@
 import React from 'react';
-import { Box, Grid, InfiniteScroll, Keyboard, Paragraph, ResponsiveContext } from 'grommet';
+import {
+  Box, Grid, InfiniteScroll, Keyboard, Paragraph, ResponsiveContext
+} from 'grommet';
 import { Brush, Calendar, Grid as GridIcon, Play } from 'grommet-icons';
 import Screen from './components/Screen';
 import Loading from './components/Loading';
@@ -8,6 +10,7 @@ import ControlLabel from './components/ControlLabel';
 import MenuButton from './components/MenuButton';
 import Player from './Player';
 import Photo from './Photo';
+import PhotoLayer from './PhotoLayer';
 
 const filters = ['none', 'B/W', 'sepia', 'vivid'];
 const layouts = ['grid', 'collage'];
@@ -17,6 +20,8 @@ const Photos = ({
 }) => {
   const responsive = React.useContext(ResponsiveContext);
   const [refreshing, setRefreshing] = React.useState(photos);
+  const [selected, setSelected] = React.useState();
+  const [selectedPhoto, setSelectedPhoto] = React.useState();
   const [play, setPlay] = React.useState();
   const [effects, setEffects] = React.useState({
     filter: 'none',
@@ -41,6 +46,11 @@ const Photos = ({
     document.addEventListener('scroll', onScroll);
     return () => document.removeEventListener('scroll', onScroll);
   });
+
+  React.useEffect(() => {
+    setSelectedPhoto(selected >= 0 ? photos[selected] : undefined)},
+    [photos, selected],
+  );
 
   // Clear refreshing if we get new photos
   React.useEffect(() => setRefreshing(false), [photos]);
@@ -113,19 +123,28 @@ const Photos = ({
                 ? (
                   <InfiniteScroll items={photos} step={3}>
                     {(photo, index) => (
-                      <Photo
+                      <Box
                         key={photo.id || photo.name}
-                        fill="horizontal"
-                        photo={photo}
-                        index={index}
-                        event={event}
-                        effects={effects}
-                        onDelete={onDelete}
-                      />
+                        border={{ size: 'medium', side: 'bottom', color: 'black'}}
+                      >
+                        <Photo
+                          fill="horizontal"
+                          photo={photo}
+                          index={index}
+                          event={event}
+                          effects={effects}
+                          onDelete={onDelete}
+                          onClick={() => setSelected(index)}
+                        />
+                      </Box>
                     )}
                   </InfiniteScroll>
                 ) : (
-                  <Grid columns="medium" rows="medium">
+                  <Grid
+                    columns="medium"
+                    rows="medium"
+                    gap={effects.layout === 'grid' ? 'small' : undefined}
+                  >
                     <InfiniteScroll items={photos} step={9}>
                       {(photo, index) => (
                         <Photo
@@ -136,6 +155,7 @@ const Photos = ({
                           fill
                           effects={effects}
                           onDelete={onDelete}
+                          onClick={() => setSelected(index)}
                         />
                       )}
                     </InfiniteScroll>
@@ -148,6 +168,18 @@ const Photos = ({
                 </Box>
               )}
             </Box>
+          )}
+          {selectedPhoto && (
+            <PhotoLayer
+              event={event}
+              photo={selectedPhoto}
+              index={selected}
+              onDelete={onDelete}
+              onSelect={(index) =>
+                setSelected(index < 0
+                  ? photos.length - 1
+                  : (index >= photos.length ? 0 : index))}
+            />
           )}
         </Box>
       </Screen>
