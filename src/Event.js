@@ -92,7 +92,12 @@ const Event = ({ token }) => {
           <AddPhoto
             session={session}
             event={event}
-            onAdd={(photo) => setPhotos(prevPhotos => [ photo, ...prevPhotos ])}
+            onAdd={(photo) => setPhotos((prevPhotos) => {
+              const nextPhotos = [photo, ...prevPhotos];
+              nextPhotos.sort((p1, p2) =>
+                (new Date(p2.date)) - (new Date(p1.date)))
+              return nextPhotos;
+            })}
           />
         ) : undefined
       }
