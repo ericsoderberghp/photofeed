@@ -48,10 +48,10 @@ function App() {
               {session && [
                 <Route key="/" exact path="/" component={Aggregate} />,
                 <Route key="/events" exact path="/events" component={Events} />,
-                <Route key="/events/add" path="/events/add" component={AddEvent} />,
+                <Route key="/events/add" exact path="/events/add" component={AddEvent} />,
                 <Route key="/events/edit" path="/events/edit/:id" component={EditEvent} />,
                 <Route key="/users" exact path="/users" component={Users} />,
-                <Route key="/users/add" path="/users/add" component={AddUser} />,
+                <Route key="/users/add" exact path="/users/add" component={AddUser} />,
                 <Route key="/users/edit" path="/users/edit/:id" component={EditUser} />
               ]}
               <Route path="/events/:token" component={Event} />
