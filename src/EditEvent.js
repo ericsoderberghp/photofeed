@@ -17,6 +17,7 @@ const EditEvent = ({ id }) => {
   const session = React.useContext(SessionContext);
   const { push } = React.useContext(RouterContext);
   const [event, setEvent] = React.useState();
+  const [value, setValue] = React.useState();
   const [busy, setBusy] = React.useState('loading');
   const [showMenu, setShowMenu] = React.useState();
   const [confirmDelete, setConfirmDelete] = React.useState();
@@ -31,6 +32,7 @@ const EditEvent = ({ id }) => {
       .then((event) => {
         document.title = `${event.name} - Photo Feed`;
         setEvent(event);
+        setValue({ name: event.name, locked: event.locked || false });
         setBusy(undefined);
       });
   }, [id, session]);
@@ -84,7 +86,8 @@ const EditEvent = ({ id }) => {
       {busy ? <Loading Icon={busyIcon[busy]} /> : (
         <Box flex={false} alignSelf="center" width="large" pad="large">
           <Form
-            value={{ name: event.name, locked: event.locked }}
+            value={value}
+            onChange={setValue}
             onSubmit={({ value: nextEvent }) => {
               setBusy("saving");
               fetch(`${apiUrl}/events/${event.id}`, {
