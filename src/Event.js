@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button } from 'grommet';
-import { Edit, Calendar, Share, Unlink } from 'grommet-icons';
+import { Edit, List, Share, Unlink } from 'grommet-icons';
 import SessionContext from './SessionContext';
 import ControlButton from './components/ControlButton';
 import MenuButton from './components/MenuButton';
@@ -74,7 +74,7 @@ const Event = ({ token }) => {
       onRefresh={load}
       onDelete={(photo) => setPhotos(photos.filter(p => p.id !== photo.id))}
       leftControl={(session && session.admin)
-        ? <ControlButton path="/events" Icon={Calendar} />
+        ? <ControlButton path="/events" Icon={List} />
         : (navigator.share ? (
           <Button
             icon={<Share />}

@@ -2,7 +2,7 @@ import React from 'react';
 import {
   Box, Grid, InfiniteScroll, Keyboard, Paragraph, ResponsiveContext
 } from 'grommet';
-import { Brush, Calendar, Grid as GridIcon, Play } from 'grommet-icons';
+import { Brush, Gallery, Grid as GridIcon, Play } from 'grommet-icons';
 import Screen from './components/Screen';
 import Loading from './components/Loading';
 import Controls from './components/Controls';
@@ -115,7 +115,7 @@ const Photos = ({
           {refreshing && <Box background="accent-1" pad="large" />}
           {!photos ? (
             <Box flex align="center" justify="center">
-              <Loading Icon={Calendar} />
+              <Loading Icon={Gallery} />
             </Box>
           ) : (
             <Box flex>

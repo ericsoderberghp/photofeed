@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Keyboard, Layer, Text } from 'grommet';
-import { Calendar, Next, Previous, Trash } from 'grommet-icons';
+import { Close, Next, Previous, Trash } from 'grommet-icons';
 import SessionContext from './SessionContext';
 import RoutedButton from './components/RoutedButton';
 import Photo from './Photo';
@@ -94,13 +94,13 @@ const PhotoLayer = ({
             <Box direction="row" align="center" gap="small">
               {event ? (
                 <Button
-                  icon={<Calendar />}
+                  icon={<Close />}
                   hoverIndicator
                   onClick={() => onSelect(undefined)}
                 />
               ) : (
                 <RoutedButton
-                  icon={<Calendar />}
+                  icon={<Close />}
                   hoverIndicator
                   path={`/events/${photo.eventToken}#${photo.id}`}
                 />
