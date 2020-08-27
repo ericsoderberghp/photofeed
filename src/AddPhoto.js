@@ -32,7 +32,7 @@ const SpinningMeter = styled(Meter)`
 const AddPhoto = ({ event, onAdd }) => {
   const session = React.useContext(SessionContext);
   const [naming, setNaming] = React.useState();
-  const [eventUser, setEventUser] = React.useState();
+  const [eventUser, setEventUser] = React.useState({ name: '' });
   const [adding, setAdding] = React.useState(0);
   const [total, setTotal] = React.useState(0);
   const inputRef = React.useRef();
@@ -201,7 +201,7 @@ const AddPhoto = ({ event, onAdd }) => {
   return (
     <Stack
       guidingChild={1}
-      interactiveChild={(eventUser || session) ? 0 : 1}
+      interactiveChild={(eventUser.token || session) ? 0 : 1}
     >
       <TextInput
         ref={inputRef}
@@ -246,14 +246,15 @@ const AddPhoto = ({ event, onAdd }) => {
                 It's friendlier that way :)
               </Paragraph>
               <Form
-                value={{ name: '' }}
+                value={eventUser}
+                onChange={setEventUser}
                 onSubmit={({ value: { name }}) => {
                   const array = crypto.getRandomValues(new Uint16Array(16));
                   const token = Array.from(array, (byte) =>
                     ('0' + (byte & 0xFF).toString(16)).slice(-2)).join('');
-                  const eventUser = { name, token };
-                  localStorage.setItem('eventUser', JSON.stringify(eventUser));
-                  setEventUser(eventUser);
+                  const nextEventUser = { name, token };
+                  localStorage.setItem('eventUser', JSON.stringify(nextEventUser));
+                  setEventUser(nextEventUser);
                   setNaming(false);
                   inputRef.current.click();
                 }}

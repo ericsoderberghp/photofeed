@@ -90,7 +90,8 @@ const EditUser = ({ id }) => {
       {busy ? <Loading Icon={busyIcon[busy]} /> : (
         <Box flex={false} alignSelf="center" width="large" pad="large">
           <Form
-            value={{ name: user.name, email: user.email, admin: user.admin, password: '' }}
+            value={user}
+            onChange={setUser}
             onSubmit={({ value: nextUser }) => {
               setBusy('saving');
               fetch(`${apiUrl}/users/${id}`, {

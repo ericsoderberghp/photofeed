@@ -3,6 +3,7 @@ import { Box, Button, Form, FormField, Heading, Paragraph, Text } from 'grommet'
 import { apiUrl } from './utils';
 
 const Start = ({ onSession }) => {
+  const [credentials, setCredentials] = React.useState({ email: '', password: '' });
   const [busy, setBusy] = React.useState();
   const [error, setError] = React.useState();
 
@@ -28,10 +29,11 @@ const Start = ({ onSession }) => {
           To start with, we need to verify you are you.
         </Paragraph>
         <Form
-          data={{ email: '', password: '' }}
-          onSubmit={({ value: user }) => {
+          value={credentials}
+          onChange={setCredentials}
+          onSubmit={({ value }) => {
             setBusy(true);
-            const body = JSON.stringify(user);
+            const body = JSON.stringify(value);
             fetch(`${apiUrl}/sessions`, {
               method: 'POST',
               headers: {
